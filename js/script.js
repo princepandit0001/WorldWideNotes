@@ -132,11 +132,7 @@ function setupEventListeners() {
         }
     });
 
-    // Storage management
-    const clearStorageBtn = document.getElementById('clearStorageBtn');
-    if (clearStorageBtn) {
-        clearStorageBtn.addEventListener('click', clearStorage);
-    }
+    // Storage management - removed for production
 }
 
 // Perform search and filtering
@@ -239,7 +235,7 @@ function openDocumentModal(doc) {
     `;
 
     // Setup download and view buttons
-    downloadBtn.onclick = () => downloadDocument(doc);
+    downloadBtn.onclick = () => downloadDocument(doc, downloadBtn);
     viewBtn.onclick = () => viewDocument(doc);
 
     modal.style.display = 'block';
@@ -251,12 +247,16 @@ function closeDocumentModal() {
 }
 
 // Download document
-async function downloadDocument(doc) {
-    const downloadBtn = document.getElementById('downloadBtn');
+async function downloadDocument(doc, buttonElement) {
+    // Use the passed button element, or fall back to the modal button
+    const downloadBtn = buttonElement || document.getElementById('downloadBtn');
+    
+    // Store original button state
+    const originalText = downloadBtn.innerHTML;
+    const originalDisabled = downloadBtn.disabled;
     
     try {
         // Show downloading state
-        const originalText = downloadBtn.innerHTML;
         downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
         downloadBtn.disabled = true;
         
@@ -264,11 +264,10 @@ async function downloadDocument(doc) {
         if (doc.isCloudinary && doc.cloudinaryUrl) {
             console.log('Downloading Cloudinary file:', doc.title);
             await downloadFromCloudinary(doc);
-            return;
+            console.log('Cloudinary download completed for:', doc.title);
         }
-        
         // Handle local storage files
-        if (doc.fileData) {
+        else if (doc.fileData) {
             console.log('Downloading local file:', doc.title);
             
             // Convert base64 to blob
@@ -289,28 +288,20 @@ async function downloadDocument(doc) {
             // Clean up
             window.URL.revokeObjectURL(url);
             
-            // Reset button
-            downloadBtn.innerHTML = originalText;
-            downloadBtn.disabled = false;
-            
             console.log('Local file downloaded successfully');
-            
         } else {
             // Sample document without file data
-            downloadBtn.innerHTML = originalText;
-            downloadBtn.disabled = false;
-            
             alert(`This is a sample document: "${doc.title}"\n\nSample documents are for demonstration only. To download real files, upload your own documents using the upload feature.`);
         }
         
     } catch (error) {
         console.error('Download error:', error);
-        
-        // Reset button
-        downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
-        downloadBtn.disabled = false;
-        
         alert('Download failed: ' + error.message);
+    } finally {
+        // Always reset button state, no matter what happens
+        downloadBtn.innerHTML = originalText;
+        downloadBtn.disabled = originalDisabled;
+        console.log('Download button reset for:', doc.title);
     }
 }
 
@@ -420,136 +411,17 @@ function getSampleData() {
     return [
         {
             id: 'sample_1',
-            title: "Calculus I - Limits and Derivatives",
-            description: "Comprehensive notes covering limits, continuity, and basic derivatives with examples and practice problems. [SAMPLE DATA]",
-            subject: "mathematics",
+            title: "Welcome to World Wide Notes",
+            description: "This is a sample document to demonstrate how the platform works. Upload your own documents to share notes, previous year papers, and study materials with students worldwide. [SAMPLE DATA]",
+            subject: "other",
             type: "notes",
-            year: 2024,
+            year: 2025,
             fileType: "PDF",
-            fileName: "calculus-1-notes.pdf",
-            originalName: "calculus-1-notes.pdf",
-            uploadDate: "2024-01-15",
-            tags: ["calculus", "derivatives", "limits"],
+            fileName: "welcome-sample.pdf",
+            originalName: "welcome-sample.pdf",
+            uploadDate: "2025-01-01",
+            tags: ["welcome", "demo", "sample"],
             isSample: true
-        },
-        {
-            id: 'sample_2',
-            title: "Physics Midterm 2023",
-            description: "Previous year midterm examination paper for Physics covering mechanics and thermodynamics. [SAMPLE DATA]",
-            subject: "physics",
-            type: "previous-papers",
-            year: 2023,
-            fileType: "PDF",
-            fileName: "physics-midterm-2023.pdf",
-            originalName: "physics-midterm-2023.pdf",
-            uploadDate: "2023-11-20",
-            tags: ["mechanics", "thermodynamics", "midterm"],
-            isSample: true
-        },
-        {
-            id: 'sample_3',
-            title: "Organic Chemistry Lab Manual",
-            description: "Complete laboratory manual for organic chemistry experiments with safety guidelines and procedures. [SAMPLE DATA]",
-            subject: "chemistry",
-            type: "notes",
-            year: 2024,
-            fileType: "PDF",
-            fileName: "organic-chem-lab.pdf",
-            originalName: "organic-chem-lab.pdf",
-            uploadDate: "2024-02-10",
-            tags: ["laboratory", "experiments", "safety"],
-            isSample: true
-        },
-        {
-            id: 4,
-            title: "Data Structures Assignment 3",
-            description: "Programming assignment on binary trees and graph algorithms with test cases and submission guidelines.",
-            subject: "computer-science",
-            type: "assignments",
-            year: 2024,
-            fileType: "pdf",
-            fileName: "ds-assignment-3.pdf",
-            filePath: "documents/cs/ds-assignment-3.pdf",
-            uploadDate: "2024-03-05",
-            tags: ["programming", "algorithms", "trees", "graphs"]
-        },
-        {
-            id: 5,
-            title: "English Literature Final 2022",
-            description: "Final examination paper covering Shakespeare, Victorian literature, and modern poetry analysis.",
-            subject: "english",
-            type: "previous-papers",
-            year: 2022,
-            fileType: "pdf",
-            fileName: "english-final-2022.pdf",
-            filePath: "documents/english/english-final-2022.pdf",
-            uploadDate: "2022-12-15",
-            tags: ["shakespeare", "poetry", "analysis"]
-        },
-        {
-            id: 6,
-            title: "World War II History Notes",
-            description: "Detailed notes on World War II causes, major battles, and consequences with timeline and maps.",
-            subject: "history",
-            type: "notes",
-            year: 2024,
-            fileType: "pdf",
-            fileName: "wwii-history-notes.pdf",
-            filePath: "documents/history/wwii-history-notes.pdf",
-            uploadDate: "2024-01-28",
-            tags: ["world-war", "battles", "timeline"]
-        },
-        {
-            id: 7,
-            title: "Biology Syllabus 2024",
-            description: "Complete syllabus for Biology course including topics, grading scheme, and examination schedule.",
-            subject: "biology",
-            type: "syllabus",
-            year: 2024,
-            fileType: "pdf",
-            fileName: "biology-syllabus-2024.pdf",
-            filePath: "documents/biology/biology-syllabus-2024.pdf",
-            uploadDate: "2024-01-02",
-            tags: ["curriculum", "grading", "schedule"]
-        },
-        {
-            id: 8,
-            title: "Linear Algebra Final 2023",
-            description: "Previous year final exam covering vector spaces, eigenvalues, and matrix transformations.",
-            subject: "mathematics",
-            type: "previous-papers",
-            year: 2023,
-            fileType: "pdf",
-            fileName: "linear-algebra-final-2023.pdf",
-            filePath: "documents/math/linear-algebra-final-2023.pdf",
-            uploadDate: "2023-12-20",
-            tags: ["vectors", "matrices", "eigenvalues"]
-        },
-        {
-            id: 9,
-            title: "Python Programming Tutorial",
-            description: "Beginner-friendly Python programming notes with examples, exercises, and best practices.",
-            subject: "computer-science",
-            type: "notes",
-            year: 2024,
-            fileType: "pdf",
-            fileName: "python-tutorial.pdf",
-            filePath: "documents/cs/python-tutorial.pdf",
-            uploadDate: "2024-02-20",
-            tags: ["python", "programming", "tutorial"]
-        },
-        {
-            id: 10,
-            title: "Chemical Bonding Quiz",
-            description: "Practice quiz on chemical bonding covering ionic, covalent, and metallic bonds with solutions.",
-            subject: "chemistry",
-            type: "assignments",
-            year: 2024,
-            fileType: "pdf",
-            fileName: "chemical-bonding-quiz.pdf",
-            filePath: "documents/chemistry/chemical-bonding-quiz.pdf",
-            uploadDate: "2024-03-12",
-            tags: ["bonding", "ionic", "covalent", "quiz"]
         }
     ];
 }
@@ -639,31 +511,6 @@ function readFileAsBase64(file) {
         reader.onerror = () => reject(new Error('Failed to read file'));
         reader.readAsDataURL(file);
     });
-}
-
-// Clear storage function
-function clearStorage() {
-    if (confirm('Are you sure you want to clear all uploaded documents? This action cannot be undone.\n\nNote: Sample documents will be restored.')) {
-        try {
-            // Clear localStorage
-            localStorage.removeItem('worldWideNotesDocuments');
-            
-            // Reload with sample data
-            documentsData = getSampleData();
-            localStorage.setItem('worldWideNotesDocuments', JSON.stringify(documentsData));
-            
-            // Update display
-            filteredDocuments = [...documentsData];
-            displayDocuments(filteredDocuments);
-            
-            // Show confirmation
-            alert('Storage cleared successfully! Sample documents have been restored.');
-            
-        } catch (error) {
-            console.error('Error clearing storage:', error);
-            alert('Error clearing storage: ' + error.message);
-        }
-    }
 }
 
 // Extract tags from title and description
