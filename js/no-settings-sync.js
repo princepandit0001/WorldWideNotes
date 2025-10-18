@@ -518,6 +518,10 @@ class NoSettingsCloudinarySync {
 // Create and initialize the no-settings sync
 const noSettingsSync = new NoSettingsCloudinarySync();
 
+// Make class available globally
+window.NoSettingsCloudinarySync = NoSettingsCloudinarySync;
+window.noSettingsSync = noSettingsSync;
+
 // Override global functions
 window.saveToWorldwideDatabase = async function(document) {
     return await noSettingsSync.saveDocument(document);

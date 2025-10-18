@@ -103,6 +103,22 @@ async function handleCloudinaryUploadSuccess(uploadResult) {
         
         const { title, description, subject, year, university } = tempData;
         
+        // 🌍 REGISTER UPLOAD GLOBALLY - This makes it visible to ALL users worldwide!
+        if (window.globalDocumentRegistry) {
+            console.log('🌍 Registering upload globally...');
+            const globalDocument = await window.globalDocumentRegistry.registerGlobalUpload(uploadResult, {
+                title,
+                description,
+                subject,
+                year,
+                university,
+                uploadedBy: 'Student',
+                tags: [subject, `year-${year}`, 'student-upload']
+            });
+            
+            console.log('🌍 ✅ Upload registered globally! Now visible to all students.');
+        }
+        
         // Create document object with Cloudinary data
         const newDocument = {
             id: 'doc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
@@ -401,68 +417,13 @@ async function downloadFromCloudinary(docData) {
     }
 }
 
-// Fetch all documents from Cloudinary for worldwide access
+// Fetch all documents from Cloudinary - DISABLED to prevent 401 errors
 async function fetchAllCloudinaryDocuments() {
-    try {
-        console.log('🌍 Fetching ALL documents from Cloudinary worldwide...');
-        
-        const cloudName = CLOUDINARY_CONFIG.cloudName;
-        const folder = CLOUDINARY_CONFIG.folder;
-        
-        if (!cloudName || !folder) {
-            console.log('Cloudinary config incomplete, skipping global fetch');
-            return [];
-        }
-        
-        // Try to fetch from Cloudinary folder listing
-        const listUrl = `https://res.cloudinary.com/${cloudName}/raw/list/${folder}.json`;
-        const response = await fetch(listUrl);
-        
-        if (response.ok) {
-            const data = await response.json();
-            const resources = data.resources || [];
-            
-            console.log(`Found ${resources.length} files in Cloudinary folder`);
-            
-            // Convert to document format
-            const documents = resources.map(resource => {
-                const filename = resource.public_id.split('/').pop();
-                const title = filename.replace(/[_-]/g, ' ').replace(/\.[^/.]+$/, '').replace(/\b\w/g, l => l.toUpperCase());
-                
-                return {
-                    id: `cloudinary_${resource.public_id}`,
-                    title: title,
-                    description: resource.context?.description || `Document: ${filename}`,
-                    subject: resource.context?.subject || guessSubjectFromFilename(filename),
-                    type: 'notes',
-                    year: parseInt(resource.context?.year || new Date().getFullYear()),
-                    university: resource.context?.university || '',
-                    fileType: (resource.format || 'pdf').toUpperCase(),
-                    fileName: filename,
-                    originalName: filename,
-                    cloudinaryUrl: resource.secure_url,
-                    cloudinaryPublicId: resource.public_id,
-                    fileSize: resource.bytes || 0,
-                    uploadDate: resource.created_at || new Date().toISOString(),
-                    tags: resource.tags || [],
-                    uploadedBy: 'Anonymous',
-                    isCloudinary: true,
-                    isWorldwide: true
-                };
-            });
-            
-            return documents;
-            
-        } else {
-            console.log('Cloudinary folder listing not available (status:', response.status, ')');
-            console.log('Note: You may need to enable public folder listing in Cloudinary settings');
-            return [];
-        }
-        
-    } catch (error) {
-        console.log('Error fetching from Cloudinary:', error.message);
-        return [];
-    }
+    // This function is disabled because it causes 401 errors on free Cloudinary accounts
+    // The no-settings sync system handles document synchronization instead
+    console.log('ℹ️ Cloudinary folder listing disabled (prevents 401 errors)');
+    console.log('ℹ️ Using no-settings sync system for document synchronization');
+    return [];
 }
 
 // Guess subject from filename

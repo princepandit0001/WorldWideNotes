@@ -45,13 +45,19 @@ async function loadDocuments() {
         showLoading(true);
         console.log('🌍 Loading documents with worldwide access...');
 
-        // Primary: Load directly from Cloudinary
+        // 🌍 PRIMARY: Load from Global Document Registry (visible to ALL users)
         let worldwideDocs = [];
-        if (window.pureCloudinarySync || window.instantSync) {
+        if (window.globalDocumentRegistry) {
+            worldwideDocs = await window.globalDocumentRegistry.loadAllGlobalDocuments();
+            console.log(`🌍 ✅ Loaded ${worldwideDocs.length} globally visible documents`);
+        }
+        
+        // SECONDARY: Load from sync services
+        if (worldwideDocs.length === 0 && (window.pureCloudinarySync || window.instantSync)) {
             const syncService = window.pureCloudinarySync || window.instantSync;
             worldwideDocs = await syncService.loadDocuments();
-            console.log(`☁️ Loaded ${worldwideDocs.length} documents directly from Cloudinary`);
-        } else if (typeof loadFromWorldwideDatabase === 'function') {
+            console.log(`☁️ Loaded ${worldwideDocs.length} documents from sync service`);
+        } else if (worldwideDocs.length === 0 && typeof loadFromWorldwideDatabase === 'function') {
             worldwideDocs = await loadFromWorldwideDatabase();
             console.log(`🌐 Loaded ${worldwideDocs.length} documents from database`);
         }
@@ -68,16 +74,10 @@ async function loadDocuments() {
             console.log('ℹ️ Error loading local cache:', localError.message);
         }
 
-        // Tertiary: Try direct Cloudinary fetch (if folder listing works)
+        // Tertiary: Direct Cloudinary fetch disabled (prevents 401 errors)
         let cloudinaryDocs = [];
-        if (typeof fetchAllCloudinaryDocuments === 'function') {
-            try {
-                cloudinaryDocs = await fetchAllCloudinaryDocuments();
-                console.log(`☁️ Loaded ${cloudinaryDocs.length} documents directly from Cloudinary`);
-            } catch (cloudinaryError) {
-                console.log('ℹ️ Direct Cloudinary fetch not available:', cloudinaryError.message);
-            }
-        }
+        console.log('ℹ️ Cloudinary folder listing disabled to prevent 401 errors');
+        console.log('ℹ️ Documents are synced using no-settings sync system instead');
 
         // Fallback: Sample data
         const sampleDocs = getSampleData();
@@ -116,6 +116,12 @@ async function loadDocuments() {
         showLoading(false);
     }
 }
+
+// Global function for refreshing document display (called by global registry)
+window.refreshDocumentDisplay = function() {
+    console.log('🔄 Refreshing document display...');
+    loadDocuments();
+};
 
 // Setup event listeners
 function setupEventListeners() {
