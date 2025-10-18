@@ -1,9 +1,9 @@
-// Cloudinary Integration Functions
+// Cloudinary Integration for Worldwide Document Access
+// This ensures all uploads are visible to everyone globally
 
-// Initialize Cloudinary
 let cloudinaryWidget;
 
-// Initialize Cloudinary widget
+// Initialize Cloudinary widget for uploads
 function initializeCloudinary() {
     if (typeof cloudinary === 'undefined') {
         console.error('Cloudinary SDK not loaded. Please check your internet connection.');
@@ -19,34 +19,36 @@ function initializeCloudinary() {
             clientAllowedFormats: CLOUDINARY_CONFIG.allowedFormats,
             maxFileSize: CLOUDINARY_CONFIG.maxFileSize,
             multiple: false,
-            cropping: false,
             sources: ['local', 'url', 'camera'],
             showAdvancedOptions: false,
-            showInsecurePreview: false,
             defaultSource: 'local',
             theme: 'white',
-            text: {
-                en: {
-                    or: "Or",
-                    back: "Back",
-                    advanced: "Advanced",
-                    close: "Close",
-                    no_results: "No Results",
-                    search_placeholder: "Search files",
-                    menu: {
-                        files: "My Files",
-                        web: "Web Address",
-                        camera: "Camera"
-                    },
-                    local: {
-                        browse: "Browse Files",
-                        dd_title_single: "Drag and Drop your file here",
-                        dd_title_multi: "Drag and Drop files here",
-                        drop_title_single: "Drop file to upload",
-                        drop_title_multiple: "Drop files to upload"
-                    }
-                }
+            
+            // Store metadata with the file for worldwide access
+            context: function() {
+                const metadata = window.tempUploadData || {};
+                return {
+                    title: metadata.title || 'Untitled Document',
+                    description: metadata.description || '',
+                    subject: metadata.subject || 'other',
+                    year: metadata.year || new Date().getFullYear(),
+                    university: metadata.university || '',
+                    uploadDate: new Date().toISOString(),
+                    source: 'WorldWideNotes'
+                };
             },
+            
+            // Add tags for categorization
+            tags: function() {
+                const metadata = window.tempUploadData || {};
+                const tags = ['world-wide-notes'];
+                
+                if (metadata.subject) tags.push(metadata.subject);
+                if (metadata.year) tags.push(`year-${metadata.year}`);
+                
+                return tags;
+            },
+            
             styles: {
                 palette: {
                     window: "#FFFFFF",
@@ -57,18 +59,10 @@ function initializeCloudinary() {
                     textLight: "#FFFFFF",
                     link: "#3498db",
                     action: "#3498db",
-                    inactiveTabIcon: "#0E2F5A",
                     error: "#F44235",
                     inProgress: "#3498db",
                     complete: "#20B832",
                     sourceBg: "#E4EBF1"
-                },
-                fonts: {
-                    default: null,
-                    "'Poppins', sans-serif": {
-                        url: "https://fonts.googleapis.com/css?family=Poppins",
-                        active: true
-                    }
                 }
             }
         }, (error, result) => {
@@ -92,7 +86,6 @@ function handleCloudinaryUploadSuccess(uploadResult) {
     try {
         console.log('File uploaded to Cloudinary:', uploadResult);
         
-        // Get form data from stored temp data
         const tempData = window.tempUploadData;
         if (!tempData) {
             throw new Error('Upload form data not found');
@@ -116,30 +109,27 @@ function handleCloudinaryUploadSuccess(uploadResult) {
             cloudinaryPublicId: uploadResult.public_id,
             fileSize: uploadResult.bytes,
             uploadDate: new Date().toISOString(),
-            tags: [],
-            uploadedBy: 'Anonymous', // You can add user system later
-            isCloudinary: true
+            tags: uploadResult.tags || [],
+            uploadedBy: 'Anonymous',
+            isCloudinary: true,
+            isWorldwide: true
         };
 
-        // Save to storage (localStorage for now, can be replaced with Firebase)
-        saveDocumentToStorage(newDocument);
+        // Save to localStorage (for caching)
+        saveDocumentToLocalStorage(newDocument);
         
-        // Update display
+        // Add to current display
         documentsData.unshift(newDocument);
         filteredDocuments = [...documentsData];
         displayDocuments(filteredDocuments);
         
         // Show success message
-        const uploadProgress = document.getElementById('uploadProgress');
-        const uploadSuccess = document.getElementById('uploadSuccess');
-        
-        uploadProgress.style.display = 'none';
-        uploadSuccess.style.display = 'block';
+        showUploadSuccess();
         
         // Clean up temp data
         window.tempUploadData = null;
         
-        console.log('Document saved successfully:', newDocument);
+        console.log('Document saved and now visible worldwide:', newDocument);
         
     } catch (error) {
         console.error('Error processing upload:', error);
@@ -147,80 +137,94 @@ function handleCloudinaryUploadSuccess(uploadResult) {
     }
 }
 
-// Handle Cloudinary upload error
-function handleCloudinaryUploadError(error) {
-    console.error('Cloudinary upload error:', error);
-    
-    const uploadProgress = document.getElementById('uploadProgress');
-    const uploadForm = document.getElementById('uploadForm');
-    
-    uploadProgress.style.display = 'none';
-    uploadForm.style.display = 'block';
-    
-    alert('Upload failed: ' + (error.message || 'Unknown error occurred'));
-}
-
-// Save document to storage (with cloud sync capability)
-function saveDocumentToStorage(document) {
+// Save document to localStorage for caching
+function saveDocumentToLocalStorage(document) {
     try {
-        // Get existing documents
         const storedDocuments = localStorage.getItem('worldWideNotesDocuments');
         let documents = storedDocuments ? JSON.parse(storedDocuments) : [];
         
-        // Add new document
-        documents.unshift(document);
+        // Check for duplicates
+        const existingIndex = documents.findIndex(doc => 
+            doc.cloudinaryPublicId === document.cloudinaryPublicId
+        );
         
-        // Save to localStorage (for current session)
+        if (existingIndex >= 0) {
+            documents[existingIndex] = document;
+        } else {
+            documents.unshift(document);
+        }
+        
+        // Keep only last 100 documents
+        if (documents.length > 100) {
+            documents.splice(100);
+        }
+        
         localStorage.setItem('worldWideNotesDocuments', JSON.stringify(documents));
-        
-        // Also try to sync to a shared storage (for production)
-        syncToSharedStorage(document);
+        console.log('Document cached locally for offline access');
         
         return true;
     } catch (error) {
-        console.error('Error saving document:', error);
+        console.error('Error saving to localStorage:', error);
         return false;
     }
 }
 
-// Sync to shared storage (for cross-user sharing)
-async function syncToSharedStorage(document) {
-    try {
-        // For now, we'll use localStorage
-        // In production, this could be:
-        // - Firebase Firestore
-        // - Supabase
-        // - A simple JSON API
-        // - GitHub repository (via API)
-        
-        console.log('Document saved for sharing:', document.title);
-        
-        // Store in a shared documents list
-        const sharedDocs = localStorage.getItem('worldWideNotesShared') || '[]';
-        const shared = JSON.parse(sharedDocs);
-        shared.unshift(document);
-        
-        // Keep only last 100 documents to prevent storage overflow
-        if (shared.length > 100) {
-            shared.splice(100);
-        }
-        
-        localStorage.setItem('worldWideNotesShared', JSON.stringify(shared));
-        
-    } catch (error) {
-        console.error('Error syncing to shared storage:', error);
+// Handle upload errors
+function handleCloudinaryUploadError(error) {
+    console.error('Upload error:', error);
+    
+    const uploadProgress = document.getElementById('uploadProgress');
+    const uploadForm = document.getElementById('uploadForm');
+    
+    if (uploadProgress) uploadProgress.style.display = 'none';
+    if (uploadForm) uploadForm.style.display = 'block';
+    
+    alert('Upload failed: ' + (error.message || 'Unknown error occurred'));
+}
+
+// Show upload success
+function showUploadSuccess() {
+    const uploadProgress = document.getElementById('uploadProgress');
+    const uploadSuccess = document.getElementById('uploadSuccess');
+    
+    if (uploadProgress) uploadProgress.style.display = 'none';
+    if (uploadSuccess) {
+        uploadSuccess.style.display = 'block';
+        uploadSuccess.innerHTML = `
+            <div class="success-message">
+                <i class="fas fa-check-circle"></i>
+                <h3>Upload Successful!</h3>
+                <p>Your document has been uploaded and is now accessible worldwide!</p>
+                <p>Anyone can now search for and download this document from any device.</p>
+            </div>
+        `;
     }
 }
 
-// Load documents from shared storage
-function loadSharedDocuments() {
-    try {
-        const shared = localStorage.getItem('worldWideNotesShared');
-        return shared ? JSON.parse(shared) : [];
-    } catch (error) {
-        console.error('Error loading shared documents:', error);
-        return [];
+// Upload document function called from the form
+function uploadDocument(title, description, subject, year, university) {
+    console.log('Starting worldwide upload:', { title, description, subject, year, university });
+    
+    // Store metadata for upload
+    window.tempUploadData = {
+        title: title || 'Untitled Document',
+        description: description || '',
+        subject: subject || 'other',
+        year: year || new Date().getFullYear(),
+        university: university || '',
+        uploadDate: new Date().toISOString()
+    };
+    
+    // Initialize Cloudinary if not already done
+    if (!cloudinaryWidget) {
+        const initialized = initializeCloudinary();
+        if (!initialized) {
+            throw new Error('Failed to initialize Cloudinary');
+        }
     }
+    
+    // Open upload widget
+    cloudinaryWidget.open();
 }
 
 // Download from Cloudinary
@@ -232,144 +236,114 @@ async function downloadFromCloudinary(docData) {
 
         console.log('Downloading from Cloudinary:', docData.cloudinaryUrl);
 
-        // Get alternative URLs to try
-        const downloadUrls = createAlternativeDownloadUrl(docData.cloudinaryUrl);
-        console.log('Trying download URLs:', downloadUrls);
-
-        // Try each URL until one works
-        for (let i = 0; i < downloadUrls.length; i++) {
-            const downloadUrl = downloadUrls[i];
-            console.log(`Trying download method ${i + 1}:`, downloadUrl);
-            
-            try {
-                // Method 1: Try direct fetch
-                const response = await fetch(downloadUrl, {
-                    method: 'GET',
-                    mode: 'cors',
-                    headers: {
-                        'Accept': '*/*',
-                    }
-                });
-                
-                if (response.ok) {
-                    const blob = await response.blob();
-                    console.log('File blob created, size:', blob.size);
-                    
-                    // Create download link
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = docData.originalName || docData.fileName || `${docData.title}.${docData.fileType.toLowerCase()}`;
-                    
-                    // Trigger download
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    
-                    // Clean up
-                    window.URL.revokeObjectURL(url);
-                    
-                    console.log('Cloudinary file downloaded successfully via fetch:', docData.title);
-                    return;
-                }
-            } catch (fetchError) {
-                console.log(`Fetch method ${i + 1} failed:`, fetchError.message);
-                continue; // Try next URL
-            }
-        }
-
-        // Method 2: Direct browser download (bypasses CORS) - try all URLs
-        console.log('All fetch methods failed, trying direct browser download');
-        
-        // Use the first alternative URL (with fl_attachment) for direct download
-        const directDownloadUrl = downloadUrls.length > 1 ? downloadUrls[1] : downloadUrls[0];
-        
+        // Try direct download
         const link = document.createElement('a');
-        link.href = directDownloadUrl;
+        link.href = docData.cloudinaryUrl;
         link.download = docData.originalName || docData.fileName || `${docData.title}.${docData.fileType.toLowerCase()}`;
         link.target = '_blank';
-        link.rel = 'noopener noreferrer';
         
-        // Add a fallback message
-        console.log('Opening direct download link. If blocked, user will see the URL.');
-        
-        // Trigger download
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         
-        console.log('Cloudinary file download initiated via direct link:', docData.title);        // Show user a message about potential delivery restrictions
-        setTimeout(() => {
-            if (confirm('If the download didn\'t work, your files might be blocked for delivery in Cloudinary.\n\nWould you like to see instructions on how to fix this?')) {
-                alert('Please check the file "FIX_DELIVERY_BLOCK.md" in your project folder for detailed instructions on how to enable public access in your Cloudinary dashboard.');
-            }
-        }, 2000);
+        console.log('Cloudinary file download initiated:', docData.title);
         
     } catch (error) {
         console.error('Cloudinary download error:', error);
-        throw error; // Re-throw so the calling function can handle it
+        throw error;
     }
+}
+
+// Fetch all documents from Cloudinary for worldwide access
+async function fetchAllCloudinaryDocuments() {
+    try {
+        console.log('🌍 Fetching ALL documents from Cloudinary worldwide...');
+        
+        const cloudName = CLOUDINARY_CONFIG.cloudName;
+        const folder = CLOUDINARY_CONFIG.folder;
+        
+        if (!cloudName || !folder) {
+            console.log('Cloudinary config incomplete, skipping global fetch');
+            return [];
+        }
+        
+        // Try to fetch from Cloudinary folder listing
+        const listUrl = `https://res.cloudinary.com/${cloudName}/raw/list/${folder}.json`;
+        const response = await fetch(listUrl);
+        
+        if (response.ok) {
+            const data = await response.json();
+            const resources = data.resources || [];
+            
+            console.log(`Found ${resources.length} files in Cloudinary folder`);
+            
+            // Convert to document format
+            const documents = resources.map(resource => {
+                const filename = resource.public_id.split('/').pop();
+                const title = filename.replace(/[_-]/g, ' ').replace(/\.[^/.]+$/, '').replace(/\b\w/g, l => l.toUpperCase());
+                
+                return {
+                    id: `cloudinary_${resource.public_id}`,
+                    title: title,
+                    description: resource.context?.description || `Document: ${filename}`,
+                    subject: resource.context?.subject || guessSubjectFromFilename(filename),
+                    type: 'notes',
+                    year: parseInt(resource.context?.year || new Date().getFullYear()),
+                    university: resource.context?.university || '',
+                    fileType: (resource.format || 'pdf').toUpperCase(),
+                    fileName: filename,
+                    originalName: filename,
+                    cloudinaryUrl: resource.secure_url,
+                    cloudinaryPublicId: resource.public_id,
+                    fileSize: resource.bytes || 0,
+                    uploadDate: resource.created_at || new Date().toISOString(),
+                    tags: resource.tags || [],
+                    uploadedBy: 'Anonymous',
+                    isCloudinary: true,
+                    isWorldwide: true
+                };
+            });
+            
+            return documents;
+            
+        } else {
+            console.log('Cloudinary folder listing not available (status:', response.status, ')');
+            console.log('Note: You may need to enable public folder listing in Cloudinary settings');
+            return [];
+        }
+        
+    } catch (error) {
+        console.log('Error fetching from Cloudinary:', error.message);
+        return [];
+    }
+}
+
+// Guess subject from filename
+function guessSubjectFromFilename(filename) {
+    const lower = filename.toLowerCase();
+    
+    if (lower.includes('math') || lower.includes('calculus') || lower.includes('algebra')) {
+        return 'mathematics';
+    } else if (lower.includes('physics')) {
+        return 'physics';
+    } else if (lower.includes('chemistry') || lower.includes('chem')) {
+        return 'chemistry';
+    } else if (lower.includes('computer') || lower.includes('programming') || lower.includes('code')) {
+        return 'computer-science';
+    } else if (lower.includes('english') || lower.includes('literature')) {
+        return 'english';
+    } else if (lower.includes('history')) {
+        return 'history';
+    } else if (lower.includes('biology') || lower.includes('bio')) {
+        return 'biology';
+    }
+    
+    return 'other';
 }
 
 // Check if Cloudinary is configured
 function isCloudinaryConfigured() {
-    return CLOUDINARY_CONFIG.cloudName === 'dpfrv7kmo' && 
-           CLOUDINARY_CONFIG.uploadPreset === 'wwnotespreset';
-}
-
-// Create alternative download link with different parameters
-function createAlternativeDownloadUrl(originalUrl) {
-    try {
-        // Try different URL formats to bypass delivery restrictions
-        const alternatives = [];
-        
-        // Original URL
-        alternatives.push(originalUrl);
-        
-        // Add fl_attachment for forced download
-        if (originalUrl.includes('/upload/')) {
-            alternatives.push(originalUrl.replace('/upload/', '/upload/fl_attachment/'));
-        }
-        
-        // Add quality and format optimizations
-        if (originalUrl.includes('/upload/')) {
-            alternatives.push(originalUrl.replace('/upload/', '/upload/q_auto,f_auto/'));
-        }
-        
-        // Raw URL format
-        if (originalUrl.includes('/image/upload/')) {
-            alternatives.push(originalUrl.replace('/image/upload/', '/raw/upload/'));
-        }
-        
-        return alternatives;
-    } catch (error) {
-        console.error('Error creating alternative URLs:', error);
-        return [originalUrl];
-    }
-}
-
-// Fallback to local storage if Cloudinary not configured
-function uploadToLocalStorage(title, description, subject, year, university, file) {
-    return readFileAsBase64(file).then(fileData => {
-        const newDocument = {
-            id: 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-            title: title,
-            description: description,
-            subject: subject,
-            type: 'notes',
-            year: parseInt(year),
-            university: university || '',
-            fileType: file.name.split('.').pop().toUpperCase(),
-            fileName: file.name,
-            originalName: file.name,
-            fileData: fileData,
-            fileSize: file.size,
-            uploadDate: new Date().toISOString(),
-            tags: [],
-            isCloudinary: false
-        };
-
-        saveDocumentToStorage(newDocument);
-        return newDocument;
-    });
+    return CLOUDINARY_CONFIG && 
+           CLOUDINARY_CONFIG.cloudName && 
+           CLOUDINARY_CONFIG.uploadPreset;
 }

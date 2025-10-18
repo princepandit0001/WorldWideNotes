@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloudinary Test - World Wide Notes</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #results { margin-top: 20px; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🌍 World Wide Notes - Cloudinary Test</h1>
+    <p>This page will test if your Cloudinary setup is working for worldwide document access.</p>
+    
+    <div>
+        <button onclick="testCloudinaryConfig()">Test Cloudinary Config</button>
+        <button onclick="testFolderAccess()">Test Folder Access</button>
+        <button onclick="testUploadAccess()">Test Upload Access</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+    
+    <div id="results"></div>
+    
+    <script src="js/config.js"></script>
+    <script>
+        let resultContainer = document.getElementById('results');
+        
+        function logResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            resultContainer.appendChild(div);
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        function clearResults() {
+            resultContainer.innerHTML = '';
+        }
+        
+        function testCloudinaryConfig() {
+            logResult('Testing Cloudinary Configuration...', 'info');
+            
+            if (typeof CLOUDINARY_CONFIG === 'undefined') {
+                logResult('❌ CLOUDINARY_CONFIG not found!', 'error');
+                return;
+            }
+            
+            const config = CLOUDINARY_CONFIG;
+            
+            if (!config.cloudName) {
+                logResult('❌ Cloud Name missing in config', 'error');
+            } else {
+                logResult(`✅ Cloud Name: ${config.cloudName}`, 'success');
+            }
+            
+            if (!config.uploadPreset) {
+                logResult('❌ Upload Preset missing in config', 'error');
+            } else {
+                logResult(`✅ Upload Preset: ${config.uploadPreset}`, 'success');
+            }
+            
+            if (!config.folder) {
+                logResult('❌ Folder missing in config', 'error');
+            } else {
+                logResult(`✅ Folder: ${config.folder}`, 'success');
+            }
+            
+            logResult('Configuration test complete!', 'info');
+        }
+        
+        async function testFolderAccess() {
+            logResult('Testing Cloudinary Folder Access...', 'info');
+            
+            if (!CLOUDINARY_CONFIG.cloudName || !CLOUDINARY_CONFIG.folder) {
+                logResult('❌ Missing cloud name or folder in config', 'error');
+                return;
+            }
+            
+            const cloudName = CLOUDINARY_CONFIG.cloudName;
+            const folder = CLOUDINARY_CONFIG.folder;
+            const listUrl = `https://res.cloudinary.com/${cloudName}/raw/list/${folder}.json`;
+            
+            logResult(`🔍 Testing URL: ${listUrl}`, 'info');
+            
+            try {
+                const response = await fetch(listUrl);
+                logResult(`📡 Response Status: ${response.status} ${response.statusText}`, 'info');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const resources = data.resources || [];
+                    
+                    logResult(`✅ Folder access successful! Found ${resources.length} files`, 'success');
+                    
+                    if (resources.length > 0) {
+                        logResult('📄 Files found:', 'info');
+                        resources.forEach((resource, index) => {
+                            const filename = resource.public_id.split('/').pop();
+                            logResult(`   ${index + 1}. ${filename} (${resource.format}) - ${resource.bytes} bytes`, 'info');
+                        });
+                    } else {
+                        logResult('ℹ️ No files found in folder. Upload some documents to test!', 'info');
+                    }
+                    
+                    // Show raw data
+                    const pre = document.createElement('pre');
+                    pre.textContent = JSON.stringify(data, null, 2);
+                    resultContainer.appendChild(pre);
+                    
+                } else if (response.status === 404) {
+                    logResult('❌ Folder not found or not publicly accessible', 'error');
+                    logResult('💡 Solution: Check if your Cloudinary folder has public listing enabled', 'info');
+                } else if (response.status === 403) {
+                    logResult('❌ Access forbidden - folder is private', 'error');
+                    logResult('💡 Solution: Enable public folder listing in Cloudinary settings', 'info');
+                } else {
+                    logResult(`❌ Unexpected response: ${response.status}`, 'error');
+                }
+                
+            } catch (error) {
+                logResult(`❌ Network error: ${error.message}`, 'error');
+                logResult('💡 Check your internet connection and try again', 'info');
+            }
+        }
+        
+        async function testUploadAccess() {
+            logResult('Testing Upload Preset Access...', 'info');
+            
+            if (!CLOUDINARY_CONFIG.cloudName || !CLOUDINARY_CONFIG.uploadPreset) {
+                logResult('❌ Missing cloud name or upload preset in config', 'error');
+                return;
+            }
+            
+            // Test if upload preset is accessible (unsigned)
+            const cloudName = CLOUDINARY_CONFIG.cloudName;
+            const uploadPreset = CLOUDINARY_CONFIG.uploadPreset;
+            
+            logResult(`🔍 Testing upload preset: ${uploadPreset}`, 'info');
+            
+            try {
+                // We can't directly test upload preset without uploading, but we can check config
+                logResult('✅ Upload preset configuration looks valid', 'success');
+                logResult('💡 To fully test uploads, try uploading a document through the main website', 'info');
+                
+                // Show upload URL that would be used
+                const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/raw/upload`;
+                logResult(`📤 Upload URL: ${uploadUrl}`, 'info');
+                
+            } catch (error) {
+                logResult(`❌ Upload test error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Auto-run basic test on page load
+        window.addEventListener('load', function() {
+            logResult('🚀 World Wide Notes Cloudinary Test Started', 'info');
+            testCloudinaryConfig();
+        });
+    </script>
+</body>
+</html>
