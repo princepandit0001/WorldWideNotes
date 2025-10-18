@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Sync Database</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1 { color: #333; text-align: center; }
+        .status { padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 12px 24px; margin: 10px 5px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: #212529; }
+        .btn-primary:hover { background: #0056b3; }
+        .btn-success:hover { background: #218838; }
+        .btn-warning:hover { background: #e0a800; }
+        textarea { width: 100%; height: 300px; font-family: monospace; font-size: 12px; border: 1px solid #ddd; border-radius: 4px; padding: 10px; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }
+        .stat-card { background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; }
+        .stat-number { font-size: 2em; font-weight: bold; color: #007bff; }
+        .stat-label { color: #666; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Database Sync Manager</h1>
+        <p style="text-align: center; color: #666;">Manage worldwide document visibility</p>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="localDocsCount">0</div>
+                <div class="stat-label">Local Documents</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="worldwideDocsCount">0</div>
+                <div class="stat-label">Worldwide Documents</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pendingCount">0</div>
+                <div class="stat-label">Pending Sync</div>
+            </div>
+        </div>
+        
+        <div id="status"></div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <button class="btn-primary" onclick="loadStats()">🔄 Refresh Stats</button>
+            <button class="btn-success" onclick="generateSyncData()">📋 Generate Sync Data</button>
+            <button class="btn-warning" onclick="showInstructions()">❓ How to Sync</button>
+        </div>
+        
+        <div id="syncData" style="display: none;">
+            <h3>📄 Sync Data (Copy this to documents-database.json)</h3>
+            <textarea id="syncTextarea" readonly></textarea>
+            <div style="text-align: center; margin: 10px 0;">
+                <button class="btn-primary" onclick="copySyncData()">📋 Copy to Clipboard</button>
+                <button class="btn-warning" onclick="downloadSyncData()">💾 Download File</button>
+            </div>
+        </div>
+        
+        <div id="instructions" style="display: none;">
+            <h3>📚 How to Sync Documents Worldwide</h3>
+            <ol style="line-height: 1.8; color: #555;">
+                <li><strong>Generate Sync Data:</strong> Click "Generate Sync Data" above</li>
+                <li><strong>Copy the JSON:</strong> Copy all the text from the textarea</li>
+                <li><strong>Go to GitHub:</strong> Visit your WorldWideNotes repository</li>
+                <li><strong>Edit the file:</strong> Open <code>documents-database.json</code></li>
+                <li><strong>Replace content:</strong> Replace all content with the copied JSON</li>
+                <li><strong>Commit changes:</strong> Save and commit the changes</li>
+                <li><strong>Wait 2-3 minutes:</strong> Allow GitHub to update the file</li>
+                <li><strong>Test:</strong> Open your website from different devices</li>
+            </ol>
+            
+            <div class="warning">
+                <strong>⚠️ Important:</strong> Make sure to copy the ENTIRE JSON content, including the opening and closing braces { }.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load stats on page load
+        document.addEventListener('DOMContentLoaded', loadStats);
+        
+        function loadStats() {
+            const status = document.getElementById('status');
+            status.innerHTML = '<div class="info">📊 Loading statistics...</div>';
+            
+            try {
+                // Get local documents
+                const localDocs = JSON.parse(localStorage.getItem('worldWideNotesDocuments') || '[]');
+                document.getElementById('localDocsCount').textContent = localDocs.length;
+                
+                // Get worldwide database
+                const worldwideDB = JSON.parse(localStorage.getItem('worldWideNotesDatabase') || '{"documents":[]}');
+                const worldwideDocs = worldwideDB.documents || [];
+                document.getElementById('worldwideDocsCount').textContent = worldwideDocs.length;
+                
+                // Get pending uploads
+                const pending = JSON.parse(localStorage.getItem('pendingUploads') || '[]');
+                document.getElementById('pendingCount').textContent = pending.length;
+                
+                // Show status
+                if (worldwideDocs.length > 0) {
+                    status.innerHTML = '<div class="success">✅ Database ready for sync! You have documents to share worldwide.</div>';
+                } else if (localDocs.length > 0) {
+                    status.innerHTML = '<div class="warning">⚠️ You have local documents that haven\'t been added to the worldwide database yet.</div>';
+                } else {
+                    status.innerHTML = '<div class="info">ℹ️ No documents found. Upload some documents first!</div>';
+                }
+                
+            } catch (error) {
+                status.innerHTML = '<div class="warning">❌ Error loading statistics: ' + error.message + '</div>';
+            }
+        }
+        
+        function generateSyncData() {
+            try {
+                // Get the worldwide database
+                const worldwideDB = JSON.parse(localStorage.getItem('worldWideNotesDatabase') || '{"documents":[],"lastUpdated":"","totalCount":0,"version":"1.0"}');
+                
+                // Update metadata
+                worldwideDB.lastUpdated = new Date().toISOString();
+                worldwideDB.totalCount = worldwideDB.documents ? worldwideDB.documents.length : 0;
+                worldwideDB.version = "1.0";
+                
+                // Show the data
+                const syncData = document.getElementById('syncData');
+                const textarea = document.getElementById('syncTextarea');
+                
+                textarea.value = JSON.stringify(worldwideDB, null, 2);
+                syncData.style.display = 'block';
+                
+                // Scroll to the textarea
+                textarea.scrollIntoView({ behavior: 'smooth' });
+                
+                const status = document.getElementById('status');
+                status.innerHTML = '<div class="success">✅ Sync data generated successfully! Copy the JSON below and update documents-database.json on GitHub.</div>';
+                
+            } catch (error) {
+                const status = document.getElementById('status');
+                status.innerHTML = '<div class="warning">❌ Error generating sync data: ' + error.message + '</div>';
+            }
+        }
+        
+        function copySyncData() {
+            const textarea = document.getElementById('syncTextarea');
+            textarea.select();
+            document.execCommand('copy');
+            
+            const status = document.getElementById('status');
+            status.innerHTML = '<div class="success">✅ Sync data copied to clipboard! Now go to GitHub and update documents-database.json</div>';
+        }
+        
+        function downloadSyncData() {
+            const textarea = document.getElementById('syncTextarea');
+            const data = textarea.value;
+            
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'documents-database.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            URL.revokeObjectURL(url);
+            
+            const status = document.getElementById('status');
+            status.innerHTML = '<div class="success">✅ File downloaded! Upload this file to your GitHub repository as documents-database.json</div>';
+        }
+        
+        function showInstructions() {
+            const instructions = document.getElementById('instructions');
+            const isVisible = instructions.style.display !== 'none';
+            
+            instructions.style.display = isVisible ? 'none' : 'block';
+            
+            if (!isVisible) {
+                instructions.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    </script>
+</body>
+</html>

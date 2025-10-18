@@ -45,10 +45,11 @@ async function loadDocuments() {
         showLoading(true);
         console.log('🌍 Loading documents with worldwide access...');
 
-        // Primary: Fetch ALL documents from Cloudinary (worldwide)
-        let cloudinaryDocs = [];
-        if (typeof fetchAllCloudinaryDocuments === 'function') {
-            cloudinaryDocs = await fetchAllCloudinaryDocuments();
+        // Primary: Load from worldwide database (stored documents from all users)
+        let worldwideDocs = [];
+        if (typeof loadFromWorldwideDatabase === 'function') {
+            worldwideDocs = await loadFromWorldwideDatabase();
+            console.log(`🌐 Loaded ${worldwideDocs.length} documents from worldwide database`);
         }
 
         // Secondary: Load cached documents from localStorage
@@ -57,16 +58,28 @@ async function loadDocuments() {
             const storedDocuments = localStorage.getItem('worldWideNotesDocuments');
             if (storedDocuments) {
                 localDocs = JSON.parse(storedDocuments);
+                console.log(`💾 Loaded ${localDocs.length} documents from local cache`);
             }
         } catch (localError) {
-            console.log('Error loading local cache:', localError.message);
+            console.log('ℹ️ Error loading local cache:', localError.message);
         }
 
-        // Tertiary: Sample data as fallback
+        // Tertiary: Try direct Cloudinary fetch (if folder listing works)
+        let cloudinaryDocs = [];
+        if (typeof fetchAllCloudinaryDocuments === 'function') {
+            try {
+                cloudinaryDocs = await fetchAllCloudinaryDocuments();
+                console.log(`☁️ Loaded ${cloudinaryDocs.length} documents directly from Cloudinary`);
+            } catch (cloudinaryError) {
+                console.log('ℹ️ Direct Cloudinary fetch not available:', cloudinaryError.message);
+            }
+        }
+
+        // Fallback: Sample data
         const sampleDocs = getSampleData();
 
         // Combine all sources and remove duplicates
-        const allDocs = [...cloudinaryDocs, ...localDocs, ...sampleDocs];
+        const allDocs = [...worldwideDocs, ...cloudinaryDocs, ...localDocs, ...sampleDocs];
         const uniqueDocs = allDocs.filter((doc, index, self) =>
             index === self.findIndex(d => 
                 (d.cloudinaryPublicId && doc.cloudinaryPublicId && d.cloudinaryPublicId === doc.cloudinaryPublicId) || 
@@ -80,17 +93,18 @@ async function loadDocuments() {
         documentsData = uniqueDocs.length > 0 ? uniqueDocs : sampleDocs;
         filteredDocuments = [...documentsData];
         
-        console.log(`✅ Loaded ${documentsData.length} documents worldwide:
-        - Cloudinary: ${cloudinaryDocs.length}
-        - Local cache: ${localDocs.length}
-        - Sample: ${sampleDocs.length}
-        - Total unique: ${uniqueDocs.length}`);
+        console.log(`✅ Total documents loaded worldwide:
+        📊 Worldwide DB: ${worldwideDocs.length}
+        ☁️ Cloudinary: ${cloudinaryDocs.length}
+        💾 Local cache: ${localDocs.length}
+        📝 Sample: ${sampleDocs.length}
+        🌍 Total unique: ${uniqueDocs.length}`);
         
         displayDocuments(filteredDocuments);
         showLoading(false);
         
     } catch (error) {
-        console.error('Error loading documents:', error);
+        console.error('❌ Error loading documents:', error);
         // Fallback to sample data
         documentsData = getSampleData();
         filteredDocuments = [...documentsData];
