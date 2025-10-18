@@ -357,12 +357,38 @@ button, .upload-card, .document-card, a {
     padding: 1.5rem;
     transition: all 0.3s;
     cursor: pointer;
+    position: relative;
 }
 
 .document-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     border-color: #3498db;
+}
+
+.card-header {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.card-header .fa-cloud {
+    color: #667eea;
+    font-size: 1.2rem;
+}
+
+.sample-badge {
+    background: #ff6b6b;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .document-card h4 {
@@ -574,6 +600,23 @@ button, .upload-card, .document-card, a {
     opacity: 0.8;
 }
 
+.clear-storage-btn {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.5);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.clear-storage-btn:hover {
+    background: #ff4757;
+    border-color: #ff4757;
+    color: white;
+}
+
 /* Upload Modal Styles */
 .upload-modal {
     max-width: 800px;
@@ -633,52 +676,46 @@ button, .upload-card, .document-card, a {
     gap: 20px;
 }
 
-/* File Upload Area */
-.file-upload-group {
+/* Upload Info Section */
+.info-section {
     margin-bottom: 2rem;
 }
 
-.file-upload-label {
-    cursor: pointer;
-}
-
-.file-upload-area {
-    border: 3px dashed #e9ecef;
+.upload-info {
+    border: 2px solid #e3f2fd;
     border-radius: 12px;
     padding: 2rem;
     text-align: center;
-    transition: all 0.3s ease;
-    background: #f8f9fa;
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
 }
 
-.file-upload-area:hover {
-    border-color: #3498db;
-    background: #e3f2fd;
-}
-
-.file-upload-area i {
+.upload-info i {
     font-size: 3rem;
     color: #3498db;
     margin-bottom: 1rem;
     display: block;
 }
 
-.file-upload-area p {
-    font-size: 1.1rem;
+.upload-info h4 {
     color: #2c3e50;
     margin-bottom: 0.5rem;
+    font-size: 1.3rem;
 }
 
-.file-upload-area small {
-    color: #6c757d;
+.upload-info p {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 1rem;
+    line-height: 1.6;
 }
 
-.file-info {
-    margin-top: 1rem;
-    padding: 1rem;
-    background: #e8f5e8;
-    border-radius: 8px;
-    display: none;
+.upload-info small {
+    color: #3498db;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 .file-info.show {
@@ -1528,4 +1565,69 @@ body, html {
         padding: 2rem 1rem;
         text-align: center;
     }
+}
+/* About Page Styles */
+.about-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 100px 0 80px;
+    text-align: center;
+    margin-top: 80px;
+}
+
+.about-hero-content h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    max-width: 600px;
+    margin: 0 auto;
+    opacity: 0.9;
+    line-height: 1.6;
+}
+
+.mission-section {
+    padding: 80px 0;
+    background: #f8f9fa;
+}
+
+.mission-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 60px;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.mission-content h2 {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.mission-content h2 i {
+    color: #667eea;
+}
+
+.mission-content p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #666;
+}
+
+.mission-image {
+    text-align: center;
+}
+
+.mission-image i {
+    font-size: 8rem;
+    color: #667eea;
+    opacity: 0.8;
 }

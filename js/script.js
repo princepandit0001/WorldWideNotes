@@ -26,8 +26,6 @@ const uploadTriggerBtn = document.getElementById('uploadTriggerBtn');
 const uploadCard = document.getElementById('uploadCard');
 const uploadModal = document.getElementById('uploadModal');
 const uploadForm = document.getElementById('uploadForm');
-const fileInput = document.getElementById('fileInput');
-const fileInfo = document.getElementById('fileInfo');
 const closeUpload = document.querySelector('.close-upload');
 const cancelUpload = document.getElementById('cancelUpload');
 const uploadProgress = document.getElementById('uploadProgress');
@@ -41,21 +39,44 @@ document.addEventListener('DOMContentLoaded', function() {
     displayDocuments(documentsData);
 });
 
-// Load documents data
+// Load documents
 async function loadDocuments() {
     try {
         showLoading(true);
-        // Try to fetch from JSON file, fallback to sample data
-        try {
-            const response = await fetch('data/documents.json');
-            documentsData = await response.json();
-        } catch (error) {
-            console.log('Using sample data');
-            documentsData = getSampleData();
+        
+        // Load from localStorage (personal uploads)
+        const storedDocuments = localStorage.getItem('worldWideNotesDocuments');
+        let personalDocs = storedDocuments ? JSON.parse(storedDocuments) : [];
+        
+        // Load shared documents (from all users)
+        let sharedDocs = [];
+        if (typeof loadSharedDocuments === 'function') {
+            sharedDocs = loadSharedDocuments();
         }
+        
+        // Combine sample data, personal docs, and shared docs
+        const sampleDocs = getSampleData();
+        
+        // Remove duplicates and combine all documents
+        const allDocs = [...personalDocs, ...sharedDocs, ...sampleDocs];
+        const uniqueDocs = allDocs.filter((doc, index, self) => 
+            index === self.findIndex(d => d.id === doc.id)
+        );
+        
+        documentsData = uniqueDocs;
+        
+        // If no documents exist, load sample data and save it
+        if (documentsData.length === 0) {
+            documentsData = sampleDocs;
+            localStorage.setItem('worldWideNotesDocuments', JSON.stringify(documentsData));
+        }
+        
         filteredDocuments = [...documentsData];
         displayDocuments(filteredDocuments);
         showLoading(false);
+        
+        console.log(`Loaded ${documentsData.length} documents (${personalDocs.length} personal, ${sharedDocs.length} shared, ${sampleDocs.length} sample)`);
+        
     } catch (error) {
         console.error('Error loading documents:', error);
         showLoading(false);
@@ -100,9 +121,6 @@ function setupEventListeners() {
     cancelUpload.addEventListener('click', closeUploadModal);
     closeSuccessBtn.addEventListener('click', closeUploadModal);
     
-    // File input events
-    fileInput.addEventListener('change', handleFileSelect);
-    
     // Form submission
     uploadForm.addEventListener('submit', handleFormSubmit);
 
@@ -113,6 +131,12 @@ function setupEventListeners() {
             closeUploadModal();
         }
     });
+
+    // Storage management
+    const clearStorageBtn = document.getElementById('clearStorageBtn');
+    if (clearStorageBtn) {
+        clearStorageBtn.addEventListener('click', clearStorage);
+    }
 }
 
 // Perform search and filtering
@@ -175,21 +199,26 @@ function createDocumentCard(doc) {
     const card = document.createElement('div');
     card.className = 'document-card';
     card.onclick = () => openDocumentModal(doc);
-
-    const tags = doc.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+    
+    // Add cloud indicator for Cloudinary files
+    const cloudIndicator = doc.isCloudinary ? '<i class="fas fa-cloud" title="Stored in Cloud"></i>' : '';
+    const sampleIndicator = doc.isSample ? '<span class="sample-badge">SAMPLE</span>' : '';
     
     card.innerHTML = `
+        <div class="card-header">
+            ${cloudIndicator}
+            ${sampleIndicator}
+        </div>
         <h4>${doc.title}</h4>
         <p>${doc.description}</p>
         <div class="document-tags">
-            <span class="tag subject">${capitalizeFirst(doc.subject)}</span>
             <span class="tag type">${capitalizeFirst(doc.type)}</span>
             <span class="tag year">${doc.year}</span>
-            ${tags}
         </div>
         <div class="document-meta">
             <span><i class="fas fa-calendar"></i> ${formatDate(doc.uploadDate)}</span>
             <span><i class="fas fa-file"></i> ${doc.fileType.toUpperCase()}</span>
+            ${doc.fileSize ? `<span><i class="fas fa-weight"></i> ${(doc.fileSize / 1024 / 1024).toFixed(1)}MB</span>` : ''}
         </div>
     `;
 
@@ -222,24 +251,124 @@ function closeDocumentModal() {
 }
 
 // Download document
-function downloadDocument(doc) {
-    // In a real application, this would initiate a file download
-    alert(`Downloading: ${doc.title}\nFile: ${doc.fileName}`);
+async function downloadDocument(doc) {
+    const downloadBtn = document.getElementById('downloadBtn');
     
-    // Simulate download
-    const link = document.createElement('a');
-    link.href = doc.filePath || '#';
-    link.download = doc.fileName;
-    link.click();
+    try {
+        // Show downloading state
+        const originalText = downloadBtn.innerHTML;
+        downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+        downloadBtn.disabled = true;
+        
+        // Check if it's a Cloudinary file
+        if (doc.isCloudinary && doc.cloudinaryUrl) {
+            console.log('Downloading Cloudinary file:', doc.title);
+            await downloadFromCloudinary(doc);
+            return;
+        }
+        
+        // Handle local storage files
+        if (doc.fileData) {
+            console.log('Downloading local file:', doc.title);
+            
+            // Convert base64 to blob
+            const response = await fetch(doc.fileData);
+            const blob = await response.blob();
+            
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = doc.originalName || doc.fileName || `${doc.title}.${doc.fileType.toLowerCase()}`;
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Clean up
+            window.URL.revokeObjectURL(url);
+            
+            // Reset button
+            downloadBtn.innerHTML = originalText;
+            downloadBtn.disabled = false;
+            
+            console.log('Local file downloaded successfully');
+            
+        } else {
+            // Sample document without file data
+            downloadBtn.innerHTML = originalText;
+            downloadBtn.disabled = false;
+            
+            alert(`This is a sample document: "${doc.title}"\n\nSample documents are for demonstration only. To download real files, upload your own documents using the upload feature.`);
+        }
+        
+    } catch (error) {
+        console.error('Download error:', error);
+        
+        // Reset button
+        downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
+        downloadBtn.disabled = false;
+        
+        alert('Download failed: ' + error.message);
+    }
 }
 
 // View document
 function viewDocument(doc) {
-    // In a real application, this would open the document in a viewer
-    if (doc.filePath) {
-        window.open(doc.filePath, '_blank');
-    } else {
-        alert(`Viewing: ${doc.title}\nThis would open the document in a new tab.`);
+    try {
+        // Check if it's a Cloudinary file
+        if (doc.isCloudinary && doc.cloudinaryUrl) {
+            console.log('Opening Cloudinary document:', doc.cloudinaryUrl);
+            
+            // Create a viewing URL that might bypass delivery restrictions
+            let viewUrl = doc.cloudinaryUrl;
+            
+            // For PDFs, try to add viewer-friendly parameters
+            if (doc.fileType && doc.fileType.toLowerCase() === 'pdf') {
+                // Add parameters to optimize for viewing
+                if (viewUrl.includes('/upload/')) {
+                    viewUrl = viewUrl.replace('/upload/', '/upload/fl_immutable_cache/');
+                }
+            }
+            
+            // Open in new tab
+            const newWindow = window.open(viewUrl, '_blank', 'noopener,noreferrer');
+            
+            if (!newWindow) {
+                // If popup was blocked, show alternative
+                alert(`Popup blocked! Please allow popups or manually open this link:\n\n${viewUrl}`);
+            }
+            
+            return;
+        }
+        
+        // Handle local storage files with base64 data
+        if (doc.fileData) {
+            // Create blob URL and open in new tab
+            fetch(doc.fileData)
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const newWindow = window.open(url, '_blank');
+                    
+                    if (!newWindow) {
+                        alert('Popup blocked! Please allow popups to view the document.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error viewing document:', error);
+                    alert('Failed to open document for viewing');
+                });
+            return;
+        }
+        
+        // Fallback for sample documents or files without data
+        alert(`This is a sample document: "${doc.title}"\n\nTo view real documents, upload your own files using the upload feature. Uploaded files will open directly in your browser.`);
+        
+    } catch (error) {
+        console.error('View document error:', error);
+        alert('Failed to view document: ' + error.message);
     }
 }
 
@@ -290,43 +419,46 @@ function formatDate(dateString) {
 function getSampleData() {
     return [
         {
-            id: 1,
+            id: 'sample_1',
             title: "Calculus I - Limits and Derivatives",
-            description: "Comprehensive notes covering limits, continuity, and basic derivatives with examples and practice problems.",
+            description: "Comprehensive notes covering limits, continuity, and basic derivatives with examples and practice problems. [SAMPLE DATA]",
             subject: "mathematics",
             type: "notes",
             year: 2024,
-            fileType: "pdf",
+            fileType: "PDF",
             fileName: "calculus-1-notes.pdf",
-            filePath: "documents/math/calculus-1-notes.pdf",
+            originalName: "calculus-1-notes.pdf",
             uploadDate: "2024-01-15",
-            tags: ["calculus", "derivatives", "limits"]
+            tags: ["calculus", "derivatives", "limits"],
+            isSample: true
         },
         {
-            id: 2,
+            id: 'sample_2',
             title: "Physics Midterm 2023",
-            description: "Previous year midterm examination paper for Physics covering mechanics and thermodynamics.",
+            description: "Previous year midterm examination paper for Physics covering mechanics and thermodynamics. [SAMPLE DATA]",
             subject: "physics",
             type: "previous-papers",
             year: 2023,
-            fileType: "pdf",
+            fileType: "PDF",
             fileName: "physics-midterm-2023.pdf",
-            filePath: "documents/physics/physics-midterm-2023.pdf",
+            originalName: "physics-midterm-2023.pdf",
             uploadDate: "2023-11-20",
-            tags: ["mechanics", "thermodynamics", "midterm"]
+            tags: ["mechanics", "thermodynamics", "midterm"],
+            isSample: true
         },
         {
-            id: 3,
+            id: 'sample_3',
             title: "Organic Chemistry Lab Manual",
-            description: "Complete laboratory manual for organic chemistry experiments with safety guidelines and procedures.",
+            description: "Complete laboratory manual for organic chemistry experiments with safety guidelines and procedures. [SAMPLE DATA]",
             subject: "chemistry",
             type: "notes",
             year: 2024,
-            fileType: "pdf",
+            fileType: "PDF",
             fileName: "organic-chem-lab.pdf",
-            filePath: "documents/chemistry/organic-chem-lab.pdf",
+            originalName: "organic-chem-lab.pdf",
             uploadDate: "2024-02-10",
-            tags: ["laboratory", "experiments", "safety"]
+            tags: ["laboratory", "experiments", "safety"],
+            isSample: true
         },
         {
             id: 4,
@@ -438,42 +570,12 @@ function resetUploadForm() {
     uploadProgress.style.display = 'none';
     uploadSuccess.style.display = 'none';
     uploadForm.reset();
-    fileInfo.classList.remove('show');
-    fileInfo.innerHTML = '';
+    
+    // Clear any temp data
+    window.tempUploadData = null;
 }
 
-// File Selection Handler
-function handleFileSelect(event) {
-    const file = event.target.files[0];
-    
-    if (file) {
-        // Check file size (15MB = 15 * 1024 * 1024 bytes)
-        const maxSize = 15 * 1024 * 1024;
-        if (file.size > maxSize) {
-            alert('File size exceeds 15MB limit. Please choose a smaller file.');
-            fileInput.value = '';
-            fileInfo.classList.remove('show');
-            return;
-        }
-        
-        // Check file type
-        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-        if (!allowedTypes.includes(file.type)) {
-            alert('Please select a PDF, DOC, or DOCX file.');
-            fileInput.value = '';
-            fileInfo.classList.remove('show');
-            return;
-        }
-        
-        // Display file info
-        const fileSize = (file.size / (1024 * 1024)).toFixed(2);
-        fileInfo.innerHTML = `
-            <i class="fas fa-file-alt"></i>
-            <strong>${file.name}</strong> (${fileSize} MB)
-        `;
-        fileInfo.classList.add('show');
-    }
-}
+
 
 // Form Submission Handler
 function handleFormSubmit(event) {
@@ -484,54 +586,84 @@ function handleFormSubmit(event) {
     const description = document.getElementById('noteDescription').value.trim();
     const subject = document.getElementById('noteSubject').value;
     const year = document.getElementById('noteYear').value;
-    const file = fileInput.files[0];
+    const university = document.getElementById('noteUniversity').value.trim();
     
-    if (!title || !description || !subject || !year || !file) {
-        alert('Please fill in all required fields and select a file.');
+    if (!title || !description || !subject || !year) {
+        alert('Please fill in all required fields.');
         return;
     }
     
-    // Show upload progress
-    uploadForm.style.display = 'none';
-    uploadProgress.style.display = 'block';
-    
-    // Simulate upload process
-    simulateUpload(title, description, subject, year, file);
+    // Start upload process - this will open Cloudinary widget
+    uploadDocument(title, description, subject, year, university);
 }
 
-// Simulate Upload Process
-function simulateUpload(title, description, subject, year, file) {
-    // In a real application, this would upload to a server
-    setTimeout(() => {
-        // Create new document object
-        const newDoc = {
-            id: documentsData.length + 1,
-            title: title,
-            description: description,
-            subject: subject,
-            type: 'notes', // Default type
-            year: parseInt(year),
-            fileType: file.name.split('.').pop().toLowerCase(),
-            fileName: file.name,
-            filePath: `documents/${subject}/${file.name}`,
-            uploadDate: new Date().toISOString().split('T')[0],
-            tags: extractTags(title, description),
-            university: document.getElementById('noteUniversity').value || 'Unknown'
-        };
+// Client-side Upload Process (with direct Cloudinary integration)
+async function uploadDocument(title, description, subject, year, university) {
+    try {
+        console.log('Opening Cloudinary upload widget');
         
-        // Add to documents data
-        documentsData.push(newDoc);
-        filteredDocuments = [...documentsData];
+        // Initialize Cloudinary if not already done
+        if (!cloudinaryWidget) {
+            const initialized = initializeCloudinary();
+            if (!initialized) {
+                throw new Error('Failed to initialize Cloudinary. Please check your internet connection.');
+            }
+        }
         
-        // Update display
-        displayDocuments(filteredDocuments);
+        // Store form data temporarily (will be used in upload success callback)
+        window.tempUploadData = { title, description, subject, year, university };
         
-        // Show success message
+        // Hide form and show progress
+        uploadForm.style.display = 'none';
+        uploadProgress.style.display = 'block';
+        
+        // Open Cloudinary upload widget directly
+        cloudinaryWidget.open();
+
+    } catch (error) {
+        console.error('Upload error:', error);
+        
+        // Show error message
         uploadProgress.style.display = 'none';
-        uploadSuccess.style.display = 'block';
+        uploadForm.style.display = 'block';
         
-        console.log('New document uploaded:', newDoc);
-    }, 3000); // 3 second simulation
+        alert('Upload failed: ' + error.message);
+    }
+}
+
+// Helper function to read file as base64
+function readFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsDataURL(file);
+    });
+}
+
+// Clear storage function
+function clearStorage() {
+    if (confirm('Are you sure you want to clear all uploaded documents? This action cannot be undone.\n\nNote: Sample documents will be restored.')) {
+        try {
+            // Clear localStorage
+            localStorage.removeItem('worldWideNotesDocuments');
+            
+            // Reload with sample data
+            documentsData = getSampleData();
+            localStorage.setItem('worldWideNotesDocuments', JSON.stringify(documentsData));
+            
+            // Update display
+            filteredDocuments = [...documentsData];
+            displayDocuments(filteredDocuments);
+            
+            // Show confirmation
+            alert('Storage cleared successfully! Sample documents have been restored.');
+            
+        } catch (error) {
+            console.error('Error clearing storage:', error);
+            alert('Error clearing storage: ' + error.message);
+        }
+    }
 }
 
 // Extract tags from title and description

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug World Wide Notes</title>
+</head>
+<body>
+    <h1>Debug Console for World Wide Notes</h1>
+    <div id="debug-info"></div>
+    
+    <script>
+        // Simple debug script to test functions
+        console.log('Debug script loaded');
+        
+        // Test if Cloudinary is loaded
+        setTimeout(() => {
+            const debugDiv = document.getElementById('debug-info');
+            let debugInfo = '<h2>Debug Information:</h2>';
+            
+            // Check if Cloudinary SDK is loaded
+            if (typeof cloudinary !== 'undefined') {
+                debugInfo += '<p>✅ Cloudinary SDK: Loaded</p>';
+            } else {
+                debugInfo += '<p>❌ Cloudinary SDK: Not loaded</p>';
+            }
+            
+            // Check if config is loaded
+            if (typeof CLOUDINARY_CONFIG !== 'undefined') {
+                debugInfo += '<p>✅ Cloudinary Config: Loaded</p>';
+                debugInfo += `<p>Cloud Name: ${CLOUDINARY_CONFIG.cloudName}</p>`;
+                debugInfo += `<p>Upload Preset: ${CLOUDINARY_CONFIG.uploadPreset}</p>`;
+            } else {
+                debugInfo += '<p>❌ Cloudinary Config: Not loaded</p>';
+            }
+            
+            // Check localStorage
+            const docs = localStorage.getItem('worldWideNotesDocuments');
+            if (docs) {
+                const parsedDocs = JSON.parse(docs);
+                debugInfo += `<p>✅ Documents in storage: ${parsedDocs.length}</p>`;
+                
+                // Check if any are Cloudinary docs
+                const cloudinaryDocs = parsedDocs.filter(doc => doc.isCloudinary);
+                debugInfo += `<p>📁 Cloudinary documents: ${cloudinaryDocs.length}</p>`;
+                
+                if (cloudinaryDocs.length > 0) {
+                    debugInfo += '<h3>Cloudinary Documents:</h3>';
+                    cloudinaryDocs.forEach(doc => {
+                        debugInfo += `<p>• ${doc.title} - URL: ${doc.cloudinaryUrl ? 'Yes' : 'No'}</p>`;
+                    });
+                }
+            } else {
+                debugInfo += '<p>📁 No documents found in storage</p>';
+            }
+            
+            debugDiv.innerHTML = debugInfo;
+        }, 1000);
+    </script>
+    
+    <!-- Load same scripts as main page -->
+    <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/cloudinary.js"></script>
+</body>
+</html>
