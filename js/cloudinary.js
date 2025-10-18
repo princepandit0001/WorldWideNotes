@@ -5,10 +5,14 @@ let cloudinaryWidget;
 
 // Initialize Cloudinary widget for uploads
 function initializeCloudinary() {
+    console.log('🔧 initializeCloudinary called');
+    
     if (typeof cloudinary === 'undefined') {
-        console.error('Cloudinary SDK not loaded. Please check your internet connection.');
+        console.error('❌ Cloudinary SDK not loaded. Please check your internet connection.');
         return false;
     }
+    
+    console.log('✅ Cloudinary SDK found, creating upload widget...');
 
     try {
         cloudinaryWidget = cloudinary.createUploadWidget({
@@ -66,14 +70,20 @@ function initializeCloudinary() {
                 }
             }
         }, (error, result) => {
+            console.log('📡 Cloudinary widget callback:', { error, result });
+            
             if (!error && result && result.event === "success") {
+                console.log('✅ Upload successful, processing result...');
                 handleCloudinaryUploadSuccess(result.info);
             } else if (error) {
-                console.error('Cloudinary upload error:', error);
+                console.error('❌ Cloudinary upload error:', error);
                 handleCloudinaryUploadError(error);
+            } else if (result) {
+                console.log('ℹ️ Cloudinary event:', result.event);
             }
         });
 
+        console.log('✅ Cloudinary widget created successfully');
         return true;
     } catch (error) {
         console.error('Error initializing Cloudinary:', error);
@@ -203,7 +213,16 @@ function showUploadSuccess() {
 
 // Upload document function called from the form
 function uploadDocument(title, description, subject, year, university) {
-    console.log('Starting worldwide upload:', { title, description, subject, year, university });
+    console.log('🚀 uploadDocument called with:', { title, description, subject, year, university });
+    
+    // Check if Cloudinary SDK is loaded
+    if (typeof cloudinary === 'undefined') {
+        console.error('❌ Cloudinary SDK not loaded!');
+        alert('Cloudinary upload system not ready. Please refresh the page and try again.');
+        return;
+    }
+    
+    console.log('✅ Cloudinary SDK is available');
     
     // Store metadata for upload
     window.tempUploadData = {
@@ -215,16 +234,29 @@ function uploadDocument(title, description, subject, year, university) {
         uploadDate: new Date().toISOString()
     };
     
+    console.log('📋 Stored upload metadata:', window.tempUploadData);
+    
     // Initialize Cloudinary if not already done
     if (!cloudinaryWidget) {
+        console.log('🔧 Initializing Cloudinary widget...');
         const initialized = initializeCloudinary();
         if (!initialized) {
+            console.error('❌ Failed to initialize Cloudinary widget');
             throw new Error('Failed to initialize Cloudinary');
         }
+        console.log('✅ Cloudinary widget initialized successfully');
     }
     
+    console.log('📤 Opening Cloudinary upload widget...');
+    
     // Open upload widget
-    cloudinaryWidget.open();
+    try {
+        cloudinaryWidget.open();
+        console.log('✅ Cloudinary widget opened successfully');
+    } catch (error) {
+        console.error('❌ Error opening Cloudinary widget:', error);
+        alert('Failed to open upload dialog: ' + error.message);
+    }
 }
 
 // Download from Cloudinary
@@ -347,3 +379,35 @@ function isCloudinaryConfigured() {
            CLOUDINARY_CONFIG.cloudName && 
            CLOUDINARY_CONFIG.uploadPreset;
 }
+
+// Test function for debugging
+function testCloudinarySetup() {
+    console.log('🧪 Testing Cloudinary setup...');
+    console.log('Config:', CLOUDINARY_CONFIG);
+    console.log('SDK loaded:', typeof cloudinary !== 'undefined');
+    console.log('Upload function available:', typeof uploadDocument === 'function');
+    
+    if (typeof cloudinary !== 'undefined') {
+        console.log('✅ Cloudinary SDK is ready');
+        try {
+            const testWidget = cloudinary.createUploadWidget({
+                cloudName: CLOUDINARY_CONFIG.cloudName,
+                uploadPreset: CLOUDINARY_CONFIG.uploadPreset
+            }, (error, result) => {
+                console.log('Test widget callback:', error, result);
+            });
+            console.log('✅ Test widget created successfully');
+        } catch (error) {
+            console.error('❌ Error creating test widget:', error);
+        }
+    } else {
+        console.error('❌ Cloudinary SDK not available');
+    }
+}
+
+// Auto-run setup test when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        testCloudinarySetup();
+    }, 1000);
+});

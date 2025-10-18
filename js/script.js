@@ -26,8 +26,6 @@ const uploadTriggerBtn = document.getElementById('uploadTriggerBtn');
 const uploadCard = document.getElementById('uploadCard');
 const uploadModal = document.getElementById('uploadModal');
 const uploadForm = document.getElementById('uploadForm');
-const fileInput = document.getElementById('fileInput');
-const fileInfo = document.getElementById('fileInfo');
 const closeUpload = document.querySelector('.close-upload');
 const cancelUpload = document.getElementById('cancelUpload');
 const uploadProgress = document.getElementById('uploadProgress');
@@ -139,11 +137,11 @@ function setupEventListeners() {
     cancelUpload.addEventListener('click', closeUploadModal);
     closeSuccessBtn.addEventListener('click', closeUploadModal);
     
-    // File input events
-    fileInput.addEventListener('change', handleFileSelect);
-    
-    // Form submission
-    uploadForm.addEventListener('submit', handleFormSubmit);
+    // Upload button click
+    const uploadNotesBtn = document.getElementById('uploadNotesBtn');
+    if (uploadNotesBtn) {
+        uploadNotesBtn.addEventListener('click', handleUploadButtonClick);
+    }
 
     // Escape key to close modals
     document.addEventListener('keydown', function(e) {
@@ -492,86 +490,80 @@ function closeUploadModal() {
 }
 
 function resetUploadForm() {
-    uploadForm.style.display = 'block';
-    uploadProgress.style.display = 'none';
-    uploadSuccess.style.display = 'none';
-    uploadForm.reset();
-    fileInfo.classList.remove('show');
-    fileInfo.innerHTML = '';
-}
-
-// File Selection Handler
-function handleFileSelect(event) {
-    const file = event.target.files[0];
+    const uploadForm = document.getElementById('uploadForm');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const uploadSuccess = document.getElementById('uploadSuccess');
     
-    if (file) {
-        // Check file size (15MB = 15 * 1024 * 1024 bytes)
-        const maxSize = 15 * 1024 * 1024;
-        if (file.size > maxSize) {
-            alert('File size exceeds 15MB limit. Please choose a smaller file.');
-            fileInput.value = '';
-            fileInfo.classList.remove('show');
-            return;
-        }
-        
-        // Check file type
-        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-        if (!allowedTypes.includes(file.type)) {
-            alert('Please select a PDF, DOC, or DOCX file.');
-            fileInput.value = '';
-            fileInfo.classList.remove('show');
-            return;
-        }
-        
-        // Display file info
-        const fileSize = (file.size / (1024 * 1024)).toFixed(2);
-        fileInfo.innerHTML = `
-            <i class="fas fa-file-alt"></i>
-            <strong>${file.name}</strong> (${fileSize} MB)
-        `;
-        fileInfo.classList.add('show');
+    if (uploadForm) {
+        uploadForm.style.display = 'block';
+        uploadForm.reset();
     }
+    if (uploadProgress) uploadProgress.style.display = 'none';
+    if (uploadSuccess) uploadSuccess.style.display = 'none';
 }
 
-// Form Submission Handler for Worldwide Upload
-function handleFormSubmit(event) {
-    event.preventDefault();
-    
-    // Validate form
+// Handle Upload Button Click - Validates form and opens Cloudinary widget
+function handleUploadButtonClick() {
+    // Validate form fields
     const title = document.getElementById('noteTitle').value.trim();
     const description = document.getElementById('noteDescription').value.trim();
     const subject = document.getElementById('noteSubject').value;
     const year = document.getElementById('noteYear').value;
     const university = document.getElementById('noteUniversity')?.value?.trim() || '';
-    const file = fileInput.files[0];
     
-    if (!title || !description || !subject || !year || !file) {
-        alert('Please fill in all required fields and select a file.');
+    // Check required fields
+    if (!title) {
+        alert('Please enter a title for your notes.');
+        document.getElementById('noteTitle').focus();
         return;
     }
     
-    // Check if Cloudinary is available
+    if (!description) {
+        alert('Please enter a description for your notes.');
+        document.getElementById('noteDescription').focus();
+        return;
+    }
+    
+    if (!subject) {
+        alert('Please select a subject.');
+        document.getElementById('noteSubject').focus();
+        return;
+    }
+    
+    if (!year) {
+        alert('Please select a year.');
+        document.getElementById('noteYear').focus();
+        return;
+    }
+    
+    // Check if Cloudinary upload function is available
     if (typeof uploadDocument !== 'function') {
         alert('Upload system not ready. Please refresh the page and try again.');
         return;
     }
     
     try {
+        console.log('🌍 Starting worldwide upload process:', title);
+        
         // Show upload progress
-        uploadForm.style.display = 'none';
-        uploadProgress.style.display = 'block';
+        const uploadForm = document.getElementById('uploadForm');
+        const uploadProgress = document.getElementById('uploadProgress');
         
-        console.log('🌍 Starting worldwide upload:', title);
+        if (uploadForm) uploadForm.style.display = 'none';
+        if (uploadProgress) uploadProgress.style.display = 'block';
         
-        // Use Cloudinary worldwide upload
+        // Call Cloudinary upload function with form data
         uploadDocument(title, description, subject, year, university);
         
     } catch (error) {
         console.error('Upload initiation error:', error);
         
         // Reset form display
-        uploadProgress.style.display = 'none';
-        uploadForm.style.display = 'block';
+        const uploadForm = document.getElementById('uploadForm');
+        const uploadProgress = document.getElementById('uploadProgress');
+        
+        if (uploadProgress) uploadProgress.style.display = 'none';
+        if (uploadForm) uploadForm.style.display = 'block';
         
         alert('Upload failed to start: ' + error.message);
     }
