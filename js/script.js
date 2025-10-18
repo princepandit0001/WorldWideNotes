@@ -45,11 +45,15 @@ async function loadDocuments() {
         showLoading(true);
         console.log('🌍 Loading documents with worldwide access...');
 
-        // Primary: Load from worldwide database (stored documents from all users)
+        // Primary: Load directly from Cloudinary
         let worldwideDocs = [];
-        if (typeof loadFromWorldwideDatabase === 'function') {
+        if (window.pureCloudinarySync || window.instantSync) {
+            const syncService = window.pureCloudinarySync || window.instantSync;
+            worldwideDocs = await syncService.loadDocuments();
+            console.log(`☁️ Loaded ${worldwideDocs.length} documents directly from Cloudinary`);
+        } else if (typeof loadFromWorldwideDatabase === 'function') {
             worldwideDocs = await loadFromWorldwideDatabase();
-            console.log(`🌐 Loaded ${worldwideDocs.length} documents from worldwide database`);
+            console.log(`🌐 Loaded ${worldwideDocs.length} documents from database`);
         }
 
         // Secondary: Load cached documents from localStorage

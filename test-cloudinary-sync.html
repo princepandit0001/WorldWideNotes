@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pure Cloudinary Sync Test - World Wide Notes</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #333;
+            margin: 0;
+            font-size: 2.5em;
+        }
+        .header p {
+            color: #666;
+            margin: 10px 0 0 0;
+            font-size: 1.1em;
+        }
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        .status-icon {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 2px solid #bee5eb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 2px solid #ffeaa7; }
+        
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 25px 0;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .button-icon {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        
+        .documents-list {
+            margin-top: 25px;
+            max-height: 500px;
+            overflow-y: auto;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        
+        .document-item {
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+            background: white;
+            margin: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .document-item:last-child {
+            border-bottom: none;
+        }
+        
+        .document-title {
+            font-weight: bold;
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .document-meta {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 25px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="header">
+            <h1>☁️ Pure Cloudinary Sync Test</h1>
+            <p>Testing direct Cloudinary integration - No external services required!</p>
+        </div>
+
+        <div id="status" class="status info">
+            <span class="status-icon">ℹ️</span>
+            <span>Initializing Pure Cloudinary Sync...</span>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div id="totalDocs" class="stat-number">0</div>
+                <div class="stat-label">Total Documents</div>
+            </div>
+            <div class="stat-card">
+                <div id="syncStatus" class="stat-number">⏳</div>
+                <div class="stat-label">Sync Status</div>
+            </div>
+            <div class="stat-card">
+                <div id="lastSync" class="stat-number">Never</div>
+                <div class="stat-label">Last Sync</div>
+            </div>
+        </div>
+
+        <div class="test-buttons">
+            <button onclick="testLoadDocuments()">
+                <span class="button-icon">📥</span>
+                Load from Cloudinary
+            </button>
+            <button onclick="testSync()">
+                <span class="button-icon">🔄</span>
+                Force Sync Now
+            </button>
+            <button onclick="testConnection()">
+                <span class="button-icon">🔗</span>
+                Test Connection
+            </button>
+            <button onclick="clearCache()">
+                <span class="button-icon">🗑️</span>
+                Clear Cache
+            </button>
+        </div>
+
+        <div id="documentsContainer">
+            <h3>📋 Documents from Cloudinary:</h3>
+            <div id="documentsList" class="documents-list">
+                <div style="text-align: center; color: #666; padding: 40px;">
+                    <div style="font-size: 50px; margin-bottom: 10px;">☁️</div>
+                    <p>Loading documents from Cloudinary...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include required scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/pure-cloudinary-sync.js"></script>
+    
+    <script>
+        let testResults = [];
+
+        function updateStatus(message, type = 'info', icon = 'ℹ️') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<span class="status-icon">${icon}</span><span>${message}</span>`;
+            statusDiv.className = `status ${type}`;
+        }
+
+        function updateStats(totalDocs, syncStatus, lastSync) {
+            document.getElementById('totalDocs').textContent = totalDocs;
+            document.getElementById('syncStatus').textContent = syncStatus;
+            document.getElementById('lastSync').textContent = lastSync;
+        }
+
+        async function testLoadDocuments() {
+            updateStatus('Loading documents from Cloudinary...', 'info', '📥');
+            
+            try {
+                const syncService = window.pureCloudinarySync || window.instantSync;
+                if (!syncService) {
+                    throw new Error('Sync service not available');
+                }
+
+                const documents = await syncService.loadDocuments();
+                
+                updateStatus(`✅ Successfully loaded ${documents.length} documents from Cloudinary!`, 'success', '✅');
+                updateStats(documents.length, '✅', new Date().toLocaleTimeString());
+                displayDocuments(documents);
+                
+            } catch (error) {
+                updateStatus(`❌ Failed to load documents: ${error.message}`, 'error', '❌');
+                updateStats(0, '❌', 'Failed');
+            }
+        }
+
+        async function testSync() {
+            updateStatus('Forcing sync from Cloudinary...', 'info', '🔄');
+            
+            try {
+                const syncService = window.pureCloudinarySync || window.instantSync;
+                if (syncService && syncService.syncFromCloudinary) {
+                    await syncService.syncFromCloudinary();
+                    updateStatus('✅ Sync completed successfully!', 'success', '✅');
+                    updateStats('-', '✅', new Date().toLocaleTimeString());
+                    
+                    // Reload documents
+                    setTimeout(() => testLoadDocuments(), 1000);
+                } else {
+                    throw new Error('Sync function not available');
+                }
+                
+            } catch (error) {
+                updateStatus(`❌ Sync failed: ${error.message}`, 'error', '❌');
+                updateStats('-', '❌', 'Failed');
+            }
+        }
+
+        async function testConnection() {
+            updateStatus('Testing Cloudinary connection...', 'info', '🔗');
+            
+            try {
+                const syncService = window.pureCloudinarySync || window.instantSync;
+                if (syncService && syncService.testCloudinaryConnection) {
+                    const success = await syncService.testCloudinaryConnection();
+                    if (success) {
+                        updateStatus('✅ Cloudinary connection successful!', 'success', '✅');
+                        updateStats('-', '🔗✅', new Date().toLocaleTimeString());
+                    } else {
+                        updateStatus('⚠️ Connection test inconclusive but continuing...', 'warning', '⚠️');
+                        updateStats('-', '⚠️', new Date().toLocaleTimeString());
+                    }
+                } else {
+                    throw new Error('Connection test not available');
+                }
+                
+            } catch (error) {
+                updateStatus(`❌ Connection test failed: ${error.message}`, 'error', '❌');
+                updateStats('-', '❌', 'Failed');
+            }
+        }
+
+        function clearCache() {
+            try {
+                localStorage.removeItem('cloudinaryCachedDocs');
+                updateStatus('✅ Cache cleared successfully!', 'success', '🗑️');
+                updateStats(0, '🗑️', 'Cleared');
+                
+                // Clear the display
+                document.getElementById('documentsList').innerHTML = `
+                    <div style="text-align: center; color: #666; padding: 40px;">
+                        <div style="font-size: 50px; margin-bottom: 10px;">🗑️</div>
+                        <p>Cache cleared. Load documents to refresh from Cloudinary.</p>
+                    </div>
+                `;
+                
+            } catch (error) {
+                updateStatus(`❌ Failed to clear cache: ${error.message}`, 'error', '❌');
+            }
+        }
+
+        function displayDocuments(documents) {
+            const listDiv = document.getElementById('documentsList');
+            
+            if (documents.length === 0) {
+                listDiv.innerHTML = `
+                    <div style="text-align: center; color: #666; padding: 40px;">
+                        <div style="font-size: 50px; margin-bottom: 10px;">📭</div>
+                        <p>No documents found in Cloudinary</p>
+                        <small>Upload some documents first, then test again</small>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = documents.map((doc, index) => `
+                <div class="document-item">
+                    <div class="document-title">${doc.title}</div>
+                    <div class="document-meta">
+                        📚 Subject: ${doc.subject}<br>
+                        📄 Type: ${doc.type} | 📅 Year: ${doc.year}<br>
+                        💾 Size: ${doc.fileSize} | 🆔 ID: ${doc.cloudinaryPublicId}<br>
+                        ⏰ Uploaded: ${new Date(doc.uploadDate).toLocaleString()}<br>
+                        🔗 <a href="${doc.cloudinaryUrl}" target="_blank">View/Download</a>
+                    </div>
+                </div>
+            `).join('');
+            
+            listDiv.innerHTML = html;
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', async function() {
+            updateStatus('Waiting for Pure Cloudinary Sync to initialize...', 'info', '⏳');
+            
+            // Wait for sync service to be available
+            let attempts = 0;
+            const waitForSync = setInterval(() => {
+                attempts++;
+                if (window.pureCloudinarySync || window.instantSync) {
+                    clearInterval(waitForSync);
+                    updateStatus('✅ Pure Cloudinary Sync initialized! Ready to test.', 'success', '✅');
+                    updateStats(0, '✅', 'Ready');
+                    
+                    // Auto-load documents
+                    setTimeout(() => testLoadDocuments(), 2000);
+                } else if (attempts > 20) { // 10 seconds timeout
+                    clearInterval(waitForSync);
+                    updateStatus('❌ Sync service failed to initialize', 'error', '❌');
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>

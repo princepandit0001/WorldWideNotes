@@ -92,7 +92,7 @@ function initializeCloudinary() {
 }
 
 // Handle successful Cloudinary upload
-function handleCloudinaryUploadSuccess(uploadResult) {
+async function handleCloudinaryUploadSuccess(uploadResult) {
     try {
         console.log('✅ File uploaded to Cloudinary:', uploadResult);
         
@@ -127,11 +127,17 @@ function handleCloudinaryUploadSuccess(uploadResult) {
 
         console.log('📄 Created document object:', newDocument);
 
-        // Save to localStorage (for caching)
+        // Save to localStorage (for caching)  
         saveDocumentToLocalStorage(newDocument);
         
-        // Save to worldwide database
-        saveToWorldwideDatabase(newDocument);
+        // Save using pure Cloudinary sync
+        if (window.pureCloudinarySync || window.instantSync) {
+            const syncService = window.pureCloudinarySync || window.instantSync;
+            await syncService.saveDocument(newDocument);
+        } else {
+            // Fallback to old method
+            await saveToWorldwideDatabase(newDocument);
+        }
         
         // Add to current display
         if (typeof documentsData !== 'undefined' && typeof displayDocuments === 'function') {
