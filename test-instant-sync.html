@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instant Sync Test - World Wide Notes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .documents-list {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .document-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            background: #f9f9f9;
+        }
+        .document-item:last-child {
+            border-bottom: none;
+        }
+        .document-title {
+            font-weight: bold;
+            color: #333;
+        }
+        .document-meta {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🚀 Instant Sync Test</h1>
+        <p>Test the instant worldwide sync functionality. This simulates what happens when documents are uploaded.</p>
+
+        <div id="status" class="status info">
+            Ready to test...
+        </div>
+
+        <div style="margin: 20px 0;">
+            <button onclick="testAddDocument()">📤 Test Add Document</button>
+            <button onclick="testLoadDocuments()">📥 Test Load Documents</button>
+            <button onclick="testClearData()">🗑️ Clear Test Data</button>
+            <button onclick="simulateUpload()">🎯 Simulate Real Upload</button>
+        </div>
+
+        <div id="documentsContainer">
+            <h3>📋 Current Documents:</h3>
+            <div id="documentsList" class="documents-list">
+                <p style="text-align: center; color: #666; padding: 20px;">No documents loaded yet...</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 5px;">
+            <h4>📊 Test Results:</h4>
+            <div id="testResults">
+                <p>Run tests to see results...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/instant-sync.js"></script>
+    <script>
+        let testResults = [];
+
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+
+        function addTestResult(message, success = true) {
+            const timestamp = new Date().toLocaleTimeString();
+            testResults.push({
+                time: timestamp,
+                message: message,
+                success: success
+            });
+            updateTestResults();
+        }
+
+        function updateTestResults() {
+            const resultsDiv = document.getElementById('testResults');
+            if (testResults.length === 0) {
+                resultsDiv.innerHTML = '<p>Run tests to see results...</p>';
+                return;
+            }
+
+            const html = testResults.map(result => `
+                <div style="margin: 5px 0; padding: 8px; background: ${result.success ? '#d4edda' : '#f8d7da'}; border-radius: 3px;">
+                    <strong>${result.time}:</strong> ${result.message}
+                </div>
+            `).join('');
+            
+            resultsDiv.innerHTML = html;
+        }
+
+        async function testAddDocument() {
+            updateStatus('Testing document addition...', 'info');
+            
+            const testDoc = {
+                title: `Test Document ${Date.now()}`,
+                subject: 'Computer Science',
+                type: 'notes',
+                year: '2024',
+                cloudinaryPublicId: `test_${Date.now()}`,
+                downloadUrl: 'https://res.cloudinary.com/dpfrv7kmo/image/upload/v1/test_file.pdf',
+                uploadDate: new Date().toISOString(),
+                fileSize: '1.2 MB',
+                tags: ['test', 'sample']
+            };
+
+            try {
+                const success = await window.instantSync.saveDocument(testDoc);
+                if (success) {
+                    updateStatus('✅ Document added successfully!', 'success');
+                    addTestResult(`Successfully added: ${testDoc.title}`, true);
+                    await testLoadDocuments();
+                } else {
+                    updateStatus('❌ Failed to add document', 'error');
+                    addTestResult(`Failed to add: ${testDoc.title}`, false);
+                }
+            } catch (error) {
+                updateStatus(`❌ Error: ${error.message}`, 'error');
+                addTestResult(`Error adding document: ${error.message}`, false);
+            }
+        }
+
+        async function testLoadDocuments() {
+            updateStatus('Loading documents...', 'info');
+            
+            try {
+                const documents = await window.instantSync.loadDocuments();
+                updateStatus(`✅ Loaded ${documents.length} documents`, 'success');
+                addTestResult(`Loaded ${documents.length} documents from sync`, true);
+                displayDocuments(documents);
+            } catch (error) {
+                updateStatus(`❌ Error loading: ${error.message}`, 'error');
+                addTestResult(`Error loading documents: ${error.message}`, false);
+            }
+        }
+
+        function displayDocuments(documents) {
+            const listDiv = document.getElementById('documentsList');
+            
+            if (documents.length === 0) {
+                listDiv.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No documents found</p>';
+                return;
+            }
+
+            const html = documents.map(doc => `
+                <div class="document-item">
+                    <div class="document-title">${doc.title}</div>
+                    <div class="document-meta">
+                        📚 ${doc.subject} | 📄 ${doc.type} | 📅 ${doc.year} | 💾 ${doc.fileSize || 'Unknown size'}
+                        <br>
+                        🔗 ID: ${doc.cloudinaryPublicId}
+                        <br>
+                        ⏰ ${new Date(doc.uploadDate).toLocaleString()}
+                    </div>
+                </div>
+            `).join('');
+            
+            listDiv.innerHTML = html;
+        }
+
+        async function testClearData() {
+            updateStatus('Clearing test data...', 'info');
+            
+            try {
+                localStorage.removeItem('worldwideDocuments');
+                localStorage.removeItem('worldWideNotesDatabase');
+                sessionStorage.removeItem('cloudSync');
+                
+                updateStatus('✅ Test data cleared', 'success');
+                addTestResult('Cleared all test data', true);
+                document.getElementById('documentsList').innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No documents loaded yet...</p>';
+            } catch (error) {
+                updateStatus(`❌ Error clearing: ${error.message}`, 'error');
+                addTestResult(`Error clearing data: ${error.message}`, false);
+            }
+        }
+
+        async function simulateUpload() {
+            updateStatus('Simulating real upload scenario...', 'info');
+            
+            const realDoc = {
+                title: 'Data Structures and Algorithms - Complete Notes',
+                subject: 'Computer Science',
+                type: 'notes',
+                year: '2024',
+                cloudinaryPublicId: `cs_notes_${Date.now()}`,
+                downloadUrl: 'https://res.cloudinary.com/dpfrv7kmo/image/upload/v1/cs_notes.pdf',
+                uploadDate: new Date().toISOString(),
+                fileSize: '2.8 MB',
+                tags: ['algorithms', 'data-structures', 'computer-science'],
+                uploader: 'Test User',
+                views: 0
+            };
+
+            try {
+                // Simulate the full upload process
+                updateStatus('📤 Uploading to Cloudinary...', 'info');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                updateStatus('💾 Saving metadata...', 'info');
+                const success = await window.instantSync.saveDocument(realDoc);
+                
+                if (success) {
+                    updateStatus('🌍 Document now visible worldwide!', 'success');
+                    addTestResult(`Upload simulation complete: ${realDoc.title}`, true);
+                    await testLoadDocuments();
+                } else {
+                    updateStatus('❌ Upload simulation failed', 'error');
+                    addTestResult('Upload simulation failed', false);
+                }
+            } catch (error) {
+                updateStatus(`❌ Simulation error: ${error.message}`, 'error');
+                addTestResult(`Simulation error: ${error.message}`, false);
+            }
+        }
+
+        // Auto-load documents on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            updateStatus('Initializing test environment...', 'info');
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testLoadDocuments();
+        });
+    </script>
+</body>
+</html>
