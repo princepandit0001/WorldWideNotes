@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://worldwidenotes.vercel.app/sitemap.xml
+
+# Crawl-delay (optional, adjust as needed)
+Crawl-delay: 1
+
+# Disallow specific paths (if any)
+# Disallow: /admin/
+# Disallow: /private/
+
+# Allow specific important paths
+Allow: /css/
+Allow: /js/
+Allow: /assets/

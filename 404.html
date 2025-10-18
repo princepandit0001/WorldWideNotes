@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found - World Wide Notes</title>
+    <meta name="description" content="The page you're looking for doesn't exist. Browse our collection of study notes and educational materials instead.">
+    <meta name="robots" content="noindex, follow">
+    <link rel="canonical" href="https://worldwidenotes.vercel.app/">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .error-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+            padding: 2rem;
+        }
+        .error-code {
+            font-size: 8rem;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 1rem;
+        }
+        .error-message {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+        .error-description {
+            font-size: 1.2rem;
+            color: #6c757d;
+            margin-bottom: 2rem;
+            max-width: 600px;
+        }
+        .error-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .btn {
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: 2px solid #e9ecef;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-page">
+            <div class="error-code">404</div>
+            <h1 class="error-message">Page Not Found</h1>
+            <p class="error-description">
+                Sorry, the page you're looking for doesn't exist. It might have been moved, deleted, or you entered the wrong URL. 
+                Let's get you back to exploring our collection of study materials!
+            </p>
+            <div class="error-actions">
+                <a href="/" class="btn btn-primary">
+                    <i class="fas fa-home"></i> Back to Home
+                </a>
+                <a href="/#browse" class="btn btn-secondary">
+                    <i class="fas fa-search"></i> Browse Notes
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- SEO: Suggest related content -->
+    <section style="max-width: 800px; margin: 2rem auto; padding: 0 1rem;">
+        <h2 style="text-align: center; color: #2c3e50; margin-bottom: 2rem;">Popular Study Materials</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+            <div style="text-align: center; padding: 1rem; border: 1px solid #e9ecef; border-radius: 8px;">
+                <i class="fas fa-calculator" style="font-size: 2rem; color: #3498db; margin-bottom: 1rem;"></i>
+                <h3>Mathematics</h3>
+                <p>Calculus, Algebra, Statistics</p>
+                <a href="/?subject=mathematics" style="color: #3498db;">Browse Math Notes</a>
+            </div>
+            <div style="text-align: center; padding: 1rem; border: 1px solid #e9ecef; border-radius: 8px;">
+                <i class="fas fa-atom" style="font-size: 2rem; color: #3498db; margin-bottom: 1rem;"></i>
+                <h3>Physics</h3>
+                <p>Mechanics, Thermodynamics</p>
+                <a href="/?subject=physics" style="color: #3498db;">Browse Physics Notes</a>
+            </div>
+            <div style="text-align: center; padding: 1rem; border: 1px solid #e9ecef; border-radius: 8px;">
+                <i class="fas fa-code" style="font-size: 2rem; color: #3498db; margin-bottom: 1rem;"></i>
+                <h3>Computer Science</h3>
+                <p>Programming, Algorithms</p>
+                <a href="/?subject=computer-science" style="color: #3498db;">Browse CS Notes</a>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

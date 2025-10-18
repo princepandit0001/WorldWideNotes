@@ -3,49 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>World Wide Notes</title>
+    
+    <!-- Primary Meta Tags -->
+    <title>World Wide Notes - Share & Access Study Materials Globally | Free Educational Resources</title>
+    <meta name="title" content="World Wide Notes - Share & Access Study Materials Globally | Free Educational Resources">
+    <meta name="description" content="Access thousands of free study notes, previous year papers, and educational materials from students worldwide. Upload and share your notes to help the global student community.">
+    <meta name="keywords" content="study notes, previous year papers, educational resources, student notes, free study materials, exam preparation, university notes, college notes, academic resources, study guides">
+    <meta name="author" content="World Wide Notes">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="7 days">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://worldwidenotes.vercel.app/">
+    <meta property="og:title" content="World Wide Notes - Share & Access Study Materials Globally">
+    <meta property="og:description" content="Access thousands of free study notes, previous year papers, and educational materials from students worldwide. Upload and share your notes to help the global student community.">
+    <meta property="og:image" content="https://worldwidenotes.vercel.app/assets/og-image.jpg">
+    <meta property="og:site_name" content="World Wide Notes">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://worldwidenotes.vercel.app/">
+    <meta property="twitter:title" content="World Wide Notes - Share & Access Study Materials Globally">
+    <meta property="twitter:description" content="Access thousands of free study notes, previous year papers, and educational materials from students worldwide. Upload and share your notes to help the global student community.">
+    <meta property="twitter:image" content="https://worldwidenotes.vercel.app/assets/og-image.jpg">
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="manifest" href="assets/site.webmanifest">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://worldwidenotes.vercel.app/">
+    
+    <!-- CSS -->
     <link rel="stylesheet" href="css/style.css">
-    <link rel="shortcut icon" href="assets/favicon-32x32.png" type="image/x-icon">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Preconnect for external resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://res.cloudinary.com">
+    
+    <!-- Structured Data - Organization -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "World Wide Notes",
+        "url": "https://worldwidenotes.vercel.app/",
+        "logo": "https://worldwidenotes.vercel.app/assets/logo.jpg",
+        "description": "A global platform for sharing and accessing educational study materials, notes, and academic resources.",
+        "sameAs": []
+    }
+    </script>
+    
+    <!-- Structured Data - WebSite -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "World Wide Notes",
+        "url": "https://worldwidenotes.vercel.app/",
+        "description": "Access thousands of free study notes, previous year papers, and educational materials from students worldwide.",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://worldwidenotes.vercel.app/?search={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+    
+    <!-- Structured Data - Educational Organization -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "EducationalOrganization",
+        "name": "World Wide Notes",
+        "url": "https://worldwidenotes.vercel.app/",
+        "description": "A collaborative platform where students worldwide share educational resources including study notes, previous year papers, and academic materials.",
+        "address": {
+            "@type": "PostalAddress",
+            "addressCountry": "Global"
+        }
+    }
+    </script>
+    
     <!-- Cloudinary SDK -->
     <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
 </head>
 <body>
     <!-- Header Section -->
-    <header class="header">
+    <header class="header" role="banner">
         <div class="container">
             <div class="logo">
-                <img src="assets/logo.jpg" alt=""  style="width: 55px; height: 55px; border-radius: 8px;">
+                <img src="assets/logo.jpg" alt="World Wide Notes Logo - Global Educational Resource Platform" style="width: 55px; height: 55px; border-radius: 8px;">
                 <h1>World Wide Notes</h1>
             </div>
-            <nav class="nav">
-                <a href="#home">Home</a>
-                <a href="#browse">Browse</a>
-                
+            <nav class="nav" role="navigation" aria-label="Main navigation">
+                <a href="#home" aria-label="Go to Home section">Home</a>
+                <a href="#browse" aria-label="Browse study materials">Browse</a>
             </nav>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="main">
+    <main class="main" role="main">
         <div class="container">
             <!-- Hero Section -->
-            <section class="hero">
-                <h2>World Wide Notes Collection</h2>
-                <p>Discover and access study notes from around the world. Browse through thousands of educational materials for all subjects</p>
+            <section class="hero" id="home">
+                <h2>Free Study Notes & Educational Resources from Students Worldwide</h2>
+                <p>Discover and access thousands of study notes, previous year papers, and educational materials from around the world. Join our global community of students sharing knowledge across all subjects including Mathematics, Physics, Chemistry, Computer Science, and more.</p>
             </section>
 
             <!-- Upload Section -->
-            <section class="upload-section">
+            <section class="upload-section" aria-labelledby="upload-heading">
                 <div class="upload-container">
                     <div class="upload-card" id="uploadCard">
-                        <div class="upload-icon">
+                        <div class="upload-icon" aria-hidden="true">
                             <i class="fas fa-plus"></i>
                         </div>
-                        <h3>Share Your Notes</h3>
-                        <p>Upload your study materials and help students worldwide</p>
-                        <button class="upload-trigger-btn" id="uploadTriggerBtn">
-                            <i class="fas fa-cloud-upload-alt"></i>
+                        <h3 id="upload-heading">Share Your Study Notes & Help Students Globally</h3>
+                        <p>Upload your study materials, lecture notes, assignments, and exam papers to help students worldwide. Contribute to our growing library of educational resources.</p>
+                        <button class="upload-trigger-btn" id="uploadTriggerBtn" aria-label="Upload your study notes and materials">
+                            <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i>
                             Upload Notes
                         </button>
                     </div>
@@ -53,22 +138,25 @@
             </section>
 
             <!-- Search Section -->
-            <section id="browse" class="search-section">
+            <section id="browse" class="search-section" aria-labelledby="search-heading">
+                <h2 id="search-heading" class="visually-hidden">Search Educational Materials</h2>
                 <div class="search-container">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchInput" placeholder="Search for notes, topics, subjects...">
-                        <button id="searchBtn" class="search-btn">Search</button>
+                    <div class="search-box" role="search">
+                        <i class="fas fa-search" aria-hidden="true"></i>
+                        <input type="text" id="searchInput" placeholder="Search study notes, previous papers, assignments..." aria-label="Search for educational materials">
+                        <button id="searchBtn" class="search-btn" aria-label="Search documents">Search</button>
                     </div>
                 </div>
 
                 <!-- Filters -->
-                <div class="filters">
+                <div class="filters" role="group" aria-label="Filter options">
                     <div class="filter-group">
-                        <label for="typeFilter">Type:</label>
-                        <select id="typeFilter">
+                        <label for="typeFilter">Document Type:</label>
+                        <select id="typeFilter" aria-label="Filter by document type">
                             <option value="">All Types</option>
                             <option value="notes">Study Notes</option>
+                            <option value="previous-papers">Previous Year Papers</option>
+                            <option value="assignments">Assignments</option>
                             <option value="guides">Study Guides</option>
                             <option value="summaries">Summaries</option>
                             <option value="tutorials">Tutorials</option>
@@ -76,8 +164,8 @@
                     </div>
 
                     <div class="filter-group">
-                        <label for="yearFilter">Year:</label>
-                        <select id="yearFilter">
+                        <label for="yearFilter">Academic Year:</label>
+                        <select id="yearFilter" aria-label="Filter by academic year">
                             <option value="">All Years</option>
                             <option value="2025">2025</option>
                             <option value="2024">2024</option>
@@ -261,7 +349,42 @@
     </div>
 
     <script src="js/config.js"></script>
+    <script src="js/seo-enhancements.js"></script>
     <script src="js/cloudinary.js"></script>
     <script src="js/script.js"></script>
+    
+    <!-- Schema Markup for FAQ (if you add an FAQ section later) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "How do I upload study notes?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Click the 'Upload Notes' button, fill in the document details (title, description, subject, year), and then select your file. Your document will be stored securely in the cloud and made available to students worldwide."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What file formats are supported?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "We support PDF, DOC, and DOCX files up to 15MB in size. These formats ensure compatibility across different devices and platforms."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Is World Wide Notes free to use?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes, World Wide Notes is completely free for students. You can browse, download, and upload study materials without any charges."
+                }
+            }
+        ]
+    }
+    </script>
 </body>
 </html>
