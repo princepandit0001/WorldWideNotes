@@ -103,10 +103,10 @@ async function handleCloudinaryUploadSuccess(uploadResult) {
         
         const { title, description, subject, year, university } = tempData;
         
-        // 🌍 REGISTER UPLOAD GLOBALLY - This makes it visible to ALL users worldwide!
-        if (window.globalDocumentRegistry) {
-            console.log('🌍 Registering upload globally...');
-            const globalDocument = await window.globalDocumentRegistry.registerGlobalUpload(uploadResult, {
+        // 🌍 REGISTER UPLOAD GLOBALLY VIA JSONBIN - Visible to ALL users worldwide!
+        if (window.jsonBinGlobalStorage) {
+            console.log('🌍 Registering upload to JSONBin global storage...');
+            const globalDocument = await window.jsonBinGlobalStorage.registerUpload(uploadResult, {
                 title,
                 description,
                 subject,
@@ -116,9 +116,13 @@ async function handleCloudinaryUploadSuccess(uploadResult) {
                 tags: [subject, `year-${year}`, 'student-upload']
             });
             
-            console.log('🌍 ✅ Upload registered globally! Now visible to all students.');
+            if (globalDocument) {
+                console.log('🌍 ✅ Upload saved to JSONBin! Now visible to ALL students worldwide.');
+            }
         }
         
+        // No local registry fallback; JSONBin is the single source of truth
+
         // Create document object with Cloudinary data
         const newDocument = {
             id: 'doc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
@@ -143,17 +147,7 @@ async function handleCloudinaryUploadSuccess(uploadResult) {
 
         console.log('📄 Created document object:', newDocument);
 
-        // Save to localStorage (for caching)  
-        saveDocumentToLocalStorage(newDocument);
-        
-        // Save using pure Cloudinary sync
-        if (window.pureCloudinarySync || window.instantSync) {
-            const syncService = window.pureCloudinarySync || window.instantSync;
-            await syncService.saveDocument(newDocument);
-        } else {
-            // Fallback to old method
-            await saveToWorldwideDatabase(newDocument);
-        }
+        // Do not write to any local caches or alternate databases
         
         // Add to current display
         if (typeof documentsData !== 'undefined' && typeof displayDocuments === 'function') {
@@ -168,7 +162,7 @@ async function handleCloudinaryUploadSuccess(uploadResult) {
         // Clean up temp data
         window.tempUploadData = null;
         
-        console.log('🌍 Document saved and now visible worldwide:', newDocument.title);
+    console.log('🌍 Document saved and now visible worldwide via JSONBin:', newDocument.title);
         
     } catch (error) {
         console.error('❌ Error processing upload:', error);
@@ -176,139 +170,6 @@ async function handleCloudinaryUploadSuccess(uploadResult) {
     }
 }
 
-// Save document to localStorage for caching
-function saveDocumentToLocalStorage(document) {
-    try {
-        const storedDocuments = localStorage.getItem('worldWideNotesDocuments');
-        let documents = storedDocuments ? JSON.parse(storedDocuments) : [];
-        
-        // Check for duplicates
-        const existingIndex = documents.findIndex(doc => 
-            doc.cloudinaryPublicId === document.cloudinaryPublicId
-        );
-        
-        if (existingIndex >= 0) {
-            documents[existingIndex] = document;
-        } else {
-            documents.unshift(document);
-        }
-        
-        // Keep only last 100 documents
-        if (documents.length > 100) {
-            documents.splice(100);
-        }
-        
-        localStorage.setItem('worldWideNotesDocuments', JSON.stringify(documents));
-        console.log('💾 Document cached locally for offline access');
-        
-        return true;
-    } catch (error) {
-        console.error('❌ Error saving to localStorage:', error);
-        return false;
-    }
-}
-
-// Save document to worldwide database (for global access)
-async function saveToWorldwideDatabase(document) {
-    try {
-        console.log('🌍 Saving document to worldwide database...');
-        
-        // Get existing worldwide documents
-        let worldwideDocuments = await loadFromWorldwideDatabase();
-        
-        // Check for duplicates
-        const existingIndex = worldwideDocuments.findIndex(doc => 
-            doc.cloudinaryPublicId === document.cloudinaryPublicId
-        );
-        
-        if (existingIndex >= 0) {
-            worldwideDocuments[existingIndex] = document;
-            console.log('📝 Updated existing document in worldwide database');
-        } else {
-            worldwideDocuments.unshift(document);
-            console.log('➕ Added new document to worldwide database');
-        }
-        
-        // Keep only last 500 documents
-        if (worldwideDocuments.length > 500) {
-            worldwideDocuments.splice(500);
-        }
-        
-        // Create the database structure
-        const databaseData = {
-            documents: worldwideDocuments,
-            lastUpdated: new Date().toISOString(),
-            totalCount: worldwideDocuments.length,
-            version: "1.0"
-        };
-        
-        // Store in a special localStorage key for syncing
-        localStorage.setItem('worldWideNotesDatabase', JSON.stringify(databaseData));
-        
-        console.log(`✅ Document saved to worldwide database (${worldwideDocuments.length} total documents)`);
-        
-        // Also log the JSON for manual update
-        console.log('📋 Copy this to documents-database.json for manual sync:');
-        console.log(JSON.stringify(databaseData, null, 2));
-        
-        return true;
-        
-    } catch (error) {
-        console.error('❌ Error saving to worldwide database:', error);
-        return false;
-    }
-}
-
-// Load documents from worldwide database
-async function loadFromWorldwideDatabase() {
-    try {
-        console.log('🌍 Loading documents from worldwide database...');
-        
-        // Try to load from GitHub-hosted JSON file
-        const databaseUrl = 'https://raw.githubusercontent.com/princepandit0001/WorldWideNotes/main/documents-database.json';
-        
-        try {
-            const response = await fetch(databaseUrl + '?t=' + Date.now(), {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Cache-Control': 'no-cache'
-                }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                const documents = data.documents || [];
-                console.log(`✅ Loaded ${documents.length} documents from worldwide database`);
-                return documents;
-            } else {
-                console.log(`ℹ️ Worldwide database not available (status: ${response.status})`);
-            }
-        } catch (fetchError) {
-            console.log('ℹ️ Could not fetch worldwide database:', fetchError.message);
-        }
-        
-        // Fallback: try to load from localStorage backup
-        try {
-            const localBackup = localStorage.getItem('worldWideNotesDatabase');
-            if (localBackup) {
-                const data = JSON.parse(localBackup);
-                const documents = data.documents || [];
-                console.log(`📱 Loaded ${documents.length} documents from local backup`);
-                return documents;
-            }
-        } catch (localError) {
-            console.log('ℹ️ No local backup available:', localError.message);
-        }
-        
-        console.log('ℹ️ No worldwide database found, starting fresh');
-        return [];
-        
-    } catch (error) {
-        console.error('❌ Error loading worldwide database:', error);
-        return [];
-    }
-}
 
 // Handle upload errors
 function handleCloudinaryUploadError(error) {

@@ -36,57 +36,26 @@ const closeSuccessBtn = document.getElementById('closeSuccessBtn');
 document.addEventListener('DOMContentLoaded', function() {
     loadDocuments();
     setupEventListeners();
-    displayDocuments(documentsData);
 });
 
 // Load documents data with worldwide access
 async function loadDocuments() {
     try {
         showLoading(true);
-        console.log('🌍 Loading documents with worldwide access...');
+        console.log('🌍 Loading documents from JSONBin (global source of truth)...');
 
-        // 🌍 PRIMARY: Load from Global Document Registry (visible to ALL users)
         let worldwideDocs = [];
-        if (window.globalDocumentRegistry) {
-            worldwideDocs = await window.globalDocumentRegistry.loadAllGlobalDocuments();
-            console.log(`🌍 ✅ Loaded ${worldwideDocs.length} globally visible documents`);
-        }
-        
-        // SECONDARY: Load from sync services
-        if (worldwideDocs.length === 0 && (window.pureCloudinarySync || window.instantSync)) {
-            const syncService = window.pureCloudinarySync || window.instantSync;
-            worldwideDocs = await syncService.loadDocuments();
-            console.log(`☁️ Loaded ${worldwideDocs.length} documents from sync service`);
-        } else if (worldwideDocs.length === 0 && typeof loadFromWorldwideDatabase === 'function') {
-            worldwideDocs = await loadFromWorldwideDatabase();
-            console.log(`🌐 Loaded ${worldwideDocs.length} documents from database`);
+        if (window.jsonBinGlobalStorage) {
+            worldwideDocs = await window.jsonBinGlobalStorage.loadAllGlobalDocuments();
+            console.log(`🌍 ✅ Loaded ${worldwideDocs.length} documents from JSONBin global storage`);
+        } else {
+            console.warn('JSONBin storage module not available');
         }
 
-        // Secondary: Load cached documents from localStorage
-        let localDocs = [];
-        try {
-            const storedDocuments = localStorage.getItem('worldWideNotesDocuments');
-            if (storedDocuments) {
-                localDocs = JSON.parse(storedDocuments);
-                console.log(`💾 Loaded ${localDocs.length} documents from local cache`);
-            }
-        } catch (localError) {
-            console.log('ℹ️ Error loading local cache:', localError.message);
-        }
-
-        // Tertiary: Direct Cloudinary fetch disabled (prevents 401 errors)
-        let cloudinaryDocs = [];
-        console.log('ℹ️ Cloudinary folder listing disabled to prevent 401 errors');
-        console.log('ℹ️ Documents are synced using no-settings sync system instead');
-
-        // Fallback: Sample data
-        const sampleDocs = getSampleData();
-
-        // Combine all sources and remove duplicates
-        const allDocs = [...worldwideDocs, ...cloudinaryDocs, ...localDocs, ...sampleDocs];
-        const uniqueDocs = allDocs.filter((doc, index, self) =>
+        // De-duplicate by Cloudinary public ID or fallback to id
+        const uniqueDocs = (worldwideDocs || []).filter((doc, index, self) =>
             index === self.findIndex(d => 
-                (d.cloudinaryPublicId && doc.cloudinaryPublicId && d.cloudinaryPublicId === doc.cloudinaryPublicId) || 
+                (d.cloudinaryPublicId && doc.cloudinaryPublicId && d.cloudinaryPublicId === doc.cloudinaryPublicId) ||
                 (d.id && doc.id && d.id === doc.id)
             )
         );
@@ -94,24 +63,16 @@ async function loadDocuments() {
         // Sort by upload date (newest first)
         uniqueDocs.sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate));
 
-        documentsData = uniqueDocs.length > 0 ? uniqueDocs : sampleDocs;
+        documentsData = uniqueDocs;
         filteredDocuments = [...documentsData];
-        
-        console.log(`✅ Total documents loaded worldwide:
-        📊 Worldwide DB: ${worldwideDocs.length}
-        ☁️ Cloudinary: ${cloudinaryDocs.length}
-        💾 Local cache: ${localDocs.length}
-        📝 Sample: ${sampleDocs.length}
-        🌍 Total unique: ${uniqueDocs.length}`);
-        
+
         displayDocuments(filteredDocuments);
         showLoading(false);
-        
+
     } catch (error) {
         console.error('❌ Error loading documents:', error);
-        // Fallback to sample data
-        documentsData = getSampleData();
-        filteredDocuments = [...documentsData];
+        documentsData = [];
+        filteredDocuments = [];
         displayDocuments(filteredDocuments);
         showLoading(false);
     }
@@ -366,141 +327,6 @@ function formatDate(dateString) {
     });
 }
 
-// Sample data function
-function getSampleData() {
-    return [
-        {
-            id: 1,
-            title: "Calculus I - Limits and Derivatives",
-            description: "Comprehensive notes covering limits, continuity, and basic derivatives with examples and practice problems.",
-            subject: "mathematics",
-            type: "notes",
-            year: 2024,
-            fileType: "pdf",
-            fileName: "calculus-1-notes.pdf",
-            filePath: "documents/math/calculus-1-notes.pdf",
-            uploadDate: "2024-01-15",
-            tags: ["calculus", "derivatives", "limits"]
-        },
-        {
-            id: 2,
-            title: "Physics Midterm 2023",
-            description: "Previous year midterm examination paper for Physics covering mechanics and thermodynamics.",
-            subject: "physics",
-            type: "previous-papers",
-            year: 2023,
-            fileType: "pdf",
-            fileName: "physics-midterm-2023.pdf",
-            filePath: "documents/physics/physics-midterm-2023.pdf",
-            uploadDate: "2023-11-20",
-            tags: ["mechanics", "thermodynamics", "midterm"]
-        },
-        {
-            id: 3,
-            title: "Organic Chemistry Lab Manual",
-            description: "Complete laboratory manual for organic chemistry experiments with safety guidelines and procedures.",
-            subject: "chemistry",
-            type: "notes",
-            year: 2024,
-            fileType: "pdf",
-            fileName: "organic-chem-lab.pdf",
-            filePath: "documents/chemistry/organic-chem-lab.pdf",
-            uploadDate: "2024-02-10",
-            tags: ["laboratory", "experiments", "safety"]
-        },
-        {
-            id: 4,
-            title: "Data Structures Assignment 3",
-            description: "Programming assignment on binary trees and graph algorithms with test cases and submission guidelines.",
-            subject: "computer-science",
-            type: "assignments",
-            year: 2024,
-            fileType: "pdf",
-            fileName: "ds-assignment-3.pdf",
-            filePath: "documents/cs/ds-assignment-3.pdf",
-            uploadDate: "2024-03-05",
-            tags: ["programming", "algorithms", "trees", "graphs"]
-        },
-        {
-            id: 5,
-            title: "English Literature Final 2022",
-            description: "Final examination paper covering Shakespeare, Victorian literature, and modern poetry analysis.",
-            subject: "english",
-            type: "previous-papers",
-            year: 2022,
-            fileType: "pdf",
-            fileName: "english-final-2022.pdf",
-            filePath: "documents/english/english-final-2022.pdf",
-            uploadDate: "2022-12-15",
-            tags: ["shakespeare", "poetry", "analysis"]
-        },
-        {
-            id: 6,
-            title: "World War II History Notes",
-            description: "Detailed notes on World War II causes, major battles, and consequences with timeline and maps.",
-            subject: "history",
-            type: "notes",
-            year: 2024,
-            fileType: "pdf",
-            fileName: "wwii-history-notes.pdf",
-            filePath: "documents/history/wwii-history-notes.pdf",
-            uploadDate: "2024-01-28",
-            tags: ["world-war", "battles", "timeline"]
-        },
-        {
-            id: 7,
-            title: "Biology Syllabus 2024",
-            description: "Complete syllabus for Biology course including topics, grading scheme, and examination schedule.",
-            subject: "biology",
-            type: "syllabus",
-            year: 2024,
-            fileType: "pdf",
-            fileName: "biology-syllabus-2024.pdf",
-            filePath: "documents/biology/biology-syllabus-2024.pdf",
-            uploadDate: "2024-01-02",
-            tags: ["curriculum", "grading", "schedule"]
-        },
-        {
-            id: 8,
-            title: "Linear Algebra Final 2023",
-            description: "Previous year final exam covering vector spaces, eigenvalues, and matrix transformations.",
-            subject: "mathematics",
-            type: "previous-papers",
-            year: 2023,
-            fileType: "pdf",
-            fileName: "linear-algebra-final-2023.pdf",
-            filePath: "documents/math/linear-algebra-final-2023.pdf",
-            uploadDate: "2023-12-20",
-            tags: ["vectors", "matrices", "eigenvalues"]
-        },
-        {
-            id: 9,
-            title: "Python Programming Tutorial",
-            description: "Beginner-friendly Python programming notes with examples, exercises, and best practices.",
-            subject: "computer-science",
-            type: "notes",
-            year: 2024,
-            fileType: "pdf",
-            fileName: "python-tutorial.pdf",
-            filePath: "documents/cs/python-tutorial.pdf",
-            uploadDate: "2024-02-20",
-            tags: ["python", "programming", "tutorial"]
-        },
-        {
-            id: 10,
-            title: "Chemical Bonding Quiz",
-            description: "Practice quiz on chemical bonding covering ionic, covalent, and metallic bonds with solutions.",
-            subject: "chemistry",
-            type: "assignments",
-            year: 2024,
-            fileType: "pdf",
-            fileName: "chemical-bonding-quiz.pdf",
-            filePath: "documents/chemistry/chemical-bonding-quiz.pdf",
-            uploadDate: "2024-03-12",
-            tags: ["bonding", "ionic", "covalent", "quiz"]
-        }
-    ];
-}
 
 // Upload Modal Functions
 function openUploadModal() {
