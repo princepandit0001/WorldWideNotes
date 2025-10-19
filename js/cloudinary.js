@@ -251,26 +251,42 @@ function uploadDocument(title, description, subject, year, university) {
     }
 }
 
-// Download from Cloudinary
+// Build a Cloudinary URL that forces download via fl_attachment
+function buildAttachmentUrl(baseUrl, filename) {
+    try {
+        if (!baseUrl) return '';
+        const idx = baseUrl.indexOf('/upload/');
+        if (idx === -1) return baseUrl; // not a standard upload URL
+        const before = baseUrl.substring(0, idx + '/upload/'.length);
+        const after = baseUrl.substring(idx + '/upload/'.length);
+        const safeName = (filename || 'download').replace(/[^A-Za-z0-9._-]/g, '_');
+        // Insert fl_attachment with filename before any existing transformations/path
+        return `${before}fl_attachment:${encodeURIComponent(safeName)}/${after}`;
+    } catch (_) {
+        return baseUrl;
+    }
+}
+
+// Download from Cloudinary (force browser save dialog)
 async function downloadFromCloudinary(docData) {
     try {
         if (!docData.cloudinaryUrl) {
             throw new Error('Cloudinary URL not available');
         }
 
-        console.log('Downloading from Cloudinary:', docData.cloudinaryUrl);
+        const filename = docData.originalName || docData.fileName || (docData.title ? `${docData.title}` : 'download');
+        const forcedUrl = buildAttachmentUrl(docData.cloudinaryUrl, filename);
+        console.log('Downloading from Cloudinary (attachment):', forcedUrl);
 
-        // Try direct download
         const link = document.createElement('a');
-        link.href = docData.cloudinaryUrl;
-        link.download = docData.originalName || docData.fileName || `${docData.title}.${docData.fileType.toLowerCase()}`;
-        link.target = '_blank';
-        
+        link.href = forcedUrl;
+        link.rel = 'noopener noreferrer';
+        link.download = filename; // may be ignored cross-origin, server header will enforce
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         
-        console.log('Cloudinary file download initiated:', docData.title);
+        console.log('Cloudinary file download initiated:', filename);
         
     } catch (error) {
         console.error('Cloudinary download error:', error);
