@@ -60,10 +60,15 @@ async function loadDocuments() {
             )
         );
 
-        // Sort by upload date (newest first)
-        uniqueDocs.sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate));
+        // Normalize and sort by upload date (newest first)
+        const normalized = uniqueDocs.map(normalizeDocument);
+        normalized.sort((a, b) => {
+            const da = a && a.uploadDate ? new Date(a.uploadDate) : new Date(0);
+            const db = b && b.uploadDate ? new Date(b.uploadDate) : new Date(0);
+            return db - da;
+        });
 
-        documentsData = uniqueDocs;
+        documentsData = normalized;
         filteredDocuments = [...documentsData];
 
         displayDocuments(filteredDocuments);
@@ -146,16 +151,17 @@ function performSearch() {
     const selectedYear = yearFilter.value;
 
     filteredDocuments = documentsData.filter(doc => {
+        const safeDoc = normalizeDocument(doc);
         // Text search
         const matchesSearch = searchTerm === '' || 
-            doc.title.toLowerCase().includes(searchTerm) ||
-            doc.description.toLowerCase().includes(searchTerm) ||
-            doc.subject.toLowerCase().includes(searchTerm) ||
-            doc.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+            safeDoc.title.toLowerCase().includes(searchTerm) ||
+            safeDoc.description.toLowerCase().includes(searchTerm) ||
+            safeDoc.subject.toLowerCase().includes(searchTerm) ||
+            safeDoc.tags.some(tag => (tag || '').toLowerCase().includes(searchTerm));
 
         // Filter matches
-        const matchesType = selectedType === '' || doc.type === selectedType;
-        const matchesYear = selectedYear === '' || doc.year.toString() === selectedYear;
+        const matchesType = selectedType === '' || safeDoc.type === selectedType;
+        const matchesYear = selectedYear === '' || String(safeDoc.year) === selectedYear;
 
         return matchesSearch && matchesType && matchesYear;
     });
@@ -187,7 +193,7 @@ function displayDocuments(documents) {
     resultsCount.textContent = `${documents.length} note${documents.length !== 1 ? 's' : ''} available`;
 
     documents.forEach(doc => {
-        const card = createDocumentCard(doc);
+        const card = createDocumentCard(normalizeDocument(doc));
         resultsContainer.appendChild(card);
     });
 }
@@ -198,7 +204,9 @@ function createDocumentCard(doc) {
     card.className = 'document-card';
     card.onclick = () => openDocumentModal(doc);
 
-    const tags = doc.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+    const tagList = Array.isArray(doc.tags) ? doc.tags : [];
+    const tags = tagList.map(tag => `<span class="tag">${tag}</span>`).join('');
+    const fileType = (doc.fileType || '').toString().toUpperCase() || 'FILE';
     
     card.innerHTML = `
         <h4>${doc.title}</h4>
@@ -211,7 +219,7 @@ function createDocumentCard(doc) {
         </div>
         <div class="document-meta">
             <span><i class="fas fa-calendar"></i> ${formatDate(doc.uploadDate)}</span>
-            <span><i class="fas fa-file"></i> ${doc.fileType.toUpperCase()}</span>
+            <span><i class="fas fa-file"></i> ${fileType}</span>
         </div>
     `;
 
@@ -220,15 +228,16 @@ function createDocumentCard(doc) {
 
 // Open document modal
 function openDocumentModal(doc) {
-    modalTitle.textContent = doc.title;
-    modalDescription.textContent = doc.description;
+    modalTitle.textContent = doc.title || 'Untitled Document';
+    modalDescription.textContent = doc.description || '';
     
     // Create tags
+    const tagList = Array.isArray(doc.tags) ? doc.tags : [];
     modalTags.innerHTML = `
         <span class="tag subject">${capitalizeFirst(doc.subject)}</span>
         <span class="tag type">${capitalizeFirst(doc.type)}</span>
         <span class="tag year">${doc.year}</span>
-        ${doc.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+        ${tagList.map(tag => `<span class="tag">${tag}</span>`).join('')}
     `;
 
     // Setup download and view buttons
@@ -319,7 +328,7 @@ function capitalizeFirst(str) {
 }
 
 function formatDate(dateString) {
-    const date = new Date(dateString);
+    const date = dateString ? new Date(dateString) : new Date(0);
     return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -430,4 +439,38 @@ function extractTags(title, description) {
         .slice(0, 5); // Limit to 5 tags
     
     return tags;
+}
+
+// Ensure a consistent document shape to avoid runtime errors
+function normalizeDocument(doc) {
+    if (!doc || typeof doc !== 'object') return {
+        title: 'Untitled Document',
+        description: '',
+        subject: 'general',
+        type: 'notes',
+        year: new Date().getFullYear(),
+        fileType: 'FILE',
+        tags: [],
+        uploadDate: new Date(0).toISOString()
+    };
+
+    return {
+        id: doc.id || doc.cloudinaryPublicId || `doc_${Date.now()}`,
+        title: doc.title || 'Untitled Document',
+        description: doc.description || '',
+        subject: (doc.subject || 'general').toString().toLowerCase(),
+        type: (doc.type || 'notes').toString().toLowerCase(),
+        year: Number(doc.year) || (doc.uploadDate ? new Date(doc.uploadDate).getFullYear() : new Date().getFullYear()),
+        fileType: (doc.fileType || (doc.format ? String(doc.format).toUpperCase() : 'FILE')),
+        fileName: doc.fileName || doc.originalName || '',
+        originalName: doc.originalName || doc.fileName || '',
+        cloudinaryUrl: doc.cloudinaryUrl || doc.downloadUrl || '',
+        cloudinaryPublicId: doc.cloudinaryPublicId || '',
+        fileSize: doc.fileSize || '',
+        uploadDate: doc.uploadDate || new Date().toISOString(),
+        tags: Array.isArray(doc.tags) ? doc.tags : [],
+        uploadedBy: doc.uploadedBy || 'Student',
+        isCloudinary: !!doc.cloudinaryUrl,
+        isWorldwide: true
+    };
 }
