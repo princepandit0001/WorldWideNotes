@@ -88,6 +88,8 @@ class JSONBinGlobalStorage {
         }
     }
 
+    // saveFeedback removed per request
+
     // Called from Cloudinary upload success
     async registerUpload(uploadResult, metadata = {}) {
         try {

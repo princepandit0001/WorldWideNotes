@@ -168,6 +168,7 @@ button, .upload-card, .document-card, a {
 
 .upload-icon i {
     font-size: 2rem;
+    height: 40px;
 }
 
 .upload-card h3 {
@@ -613,6 +614,42 @@ button, .upload-card, .document-card, a {
     opacity: 0.8;
 }
 
+/* Footer social/contact icons */
+.footer-support .icon-links {
+    display: inline-flex;
+    gap: 14px;
+    align-items: center;
+    margin-right: 10px;
+}
+
+.footer-support .icon-links a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    text-decoration: none;
+    background: transparent;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.footer-support .icon-links i {
+    font-size: 28px; /* Make the glyph large */
+    line-height: 1;
+}
+
+/* Original brand colors */
+.footer-support .icon-links a.email i { color: #EA4335; }
+.footer-support .icon-links a.whatsapp i { color: #25D366; }
+
+.footer-support .icon-links a:hover,
+.footer-support .icon-links a:focus {
+    transform: translateY(-1px);
+    background-color: rgba(255,255,255,0.08);
+    outline: none;
+}
+
 .clear-storage-btn {
     background: none;
     border: 1px solid rgba(255,255,255,0.5);
@@ -840,6 +877,31 @@ button, .upload-card, .document-card, a {
     margin-bottom: 2rem;
 }
 
+/* Feedback Modal */
+.feedback-modal {
+    max-width: 720px;
+    width: 92%;
+    max-height: 95vh;
+    margin: 3vh auto;
+    overflow-y: auto;
+}
+
+.feedback-modal .modal-header h3 i {
+    color: #badaef;
+    margin-right: 8px;
+}
+
+.feedback-modal .modal-body {
+    padding-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .feedback-modal {
+        width: 95%;
+        margin: 2vh auto;
+    }
+}
+
 .close-success-btn {
     background: #28a745;
     color: white;
@@ -1060,6 +1122,7 @@ button, .upload-card, .document-card, a {
     
     .upload-icon i {
         font-size: 1.2rem;
+        height: 50px;
     }
     
     .upload-card h3 {

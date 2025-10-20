@@ -127,6 +127,7 @@ function setupEventListeners() {
     cancelUpload.addEventListener('click', closeUploadModal);
     closeSuccessBtn.addEventListener('click', closeUploadModal);
     
+    
     // Upload button click
     const uploadNotesBtn = document.getElementById('uploadNotesBtn');
     if (uploadNotesBtn) {
@@ -138,6 +139,7 @@ function setupEventListeners() {
         if (e.key === 'Escape') {
             closeDocumentModal();
             closeUploadModal();
+            
         }
     });
 }
@@ -474,3 +476,5 @@ function normalizeDocument(doc) {
         isWorldwide: true
     };
 }
+
+// Feedback Modal Functions removed

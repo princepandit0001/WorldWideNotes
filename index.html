@@ -211,7 +211,7 @@
             <div class="footer-links">
                 
                 <a href="#browse">Browse</a>
-                <a href="#">Feedback</a>
+                <a href="#" id="feedbackLink" aria-haspopup="dialog" aria-controls="feedbackModal">Feedback</a>
             </div>
             <p class="footer-support">
                 <span>Reach out to us:</span> <br>
@@ -277,6 +277,59 @@
                             <small><i class="fas fa-info-circle"></i> Supports PDF, DOC, DOCX files up to 15MB</small>
                         </div>
                     </div>
+
+                        <!-- Feedback Modal -->
+                        <div id="feedbackModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle" aria-describedby="feedbackDesc" style="display: none;">
+                            <div class="modal-content feedback-modal">
+                                <span class="close" id="closeFeedback" aria-label="Close feedback form">&times;</span>
+                                <div class="modal-header">
+                                    <h3 id="feedbackTitle"><i class="fas fa-comment-dots"></i> Send Feedback</h3>
+                                    <p id="feedbackDesc">Tell us what you think about World Wide Notes. Your feedback helps us improve.</p>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="feedbackForm" class="upload-form">
+                                        <div class="form-group">
+                                            <label for="fbName"><i class="fas fa-user"></i> Your Name *</label>
+                                            <input type="text" id="fbName" placeholder="Enter your name" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="fbEmail"><i class="fas fa-envelope"></i> Email (optional)</label>
+                                            <input type="email" id="fbEmail" placeholder="you@example.com">
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="fbCategory"><i class="fas fa-tag"></i> Category</label>
+                                                <select id="fbCategory">
+                                                    <option value="general" selected>General</option>
+                                                    <option value="bug">Bug Report</option>
+                                                    <option value="suggestion">Suggestion</option>
+                                                    <option value="other">Other</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="fbSubject"><i class="fas fa-heading"></i> Subject (optional)</label>
+                                                <input type="text" id="fbSubject" placeholder="Short subject">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="fbMessage"><i class="fas fa-pencil-alt"></i> Message *</label>
+                                            <textarea id="fbMessage" rows="5" placeholder="Share details about your feedback..." required></textarea>
+                                        </div>
+                                        <div class="form-actions">
+                                            <button type="button" class="cancel-btn" id="cancelFeedback">Cancel</button>
+                                            <button type="submit" class="submit-btn" id="submitFeedback"><i class="fas fa-paper-plane"></i> Send Feedback</button>
+                                        </div>
+                                    </form>
+
+                                    <div id="feedbackSuccess" class="upload-success" style="display: none;">
+                                        <i class="fas fa-check-circle"></i>
+                                        <h3>Thanks for your feedback!</h3>
+                                        <p>We appreciate you taking the time to help improve World Wide Notes.</p>
+                                        <button class="close-success-btn" id="closeFeedbackSuccess">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                     <div class="form-group">
                         <label for="noteTitle">
