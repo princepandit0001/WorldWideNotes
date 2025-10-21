@@ -32,6 +32,15 @@ const uploadProgress = document.getElementById('uploadProgress');
 const uploadSuccess = document.getElementById('uploadSuccess');
 const closeSuccessBtn = document.getElementById('closeSuccessBtn');
 
+// Feedback Elements
+const feedbackLink = document.getElementById('feedbackLink');
+const feedbackModal = document.getElementById('feedbackModal');
+const closeFeedback = document.getElementById('closeFeedback');
+const cancelFeedback = document.getElementById('cancelFeedback');
+const feedbackForm = document.getElementById('feedbackForm');
+const feedbackSuccess = document.getElementById('feedbackSuccess');
+const closeFeedbackSuccess = document.getElementById('closeFeedbackSuccess');
+
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
     loadDocuments();
@@ -118,6 +127,9 @@ function setupEventListeners() {
         if (e.target === uploadModal) {
             closeUploadModal();
         }
+        if (e.target === feedbackModal) {
+            closeFeedbackModal();
+        }
     });
 
     // Upload events
@@ -134,11 +146,23 @@ function setupEventListeners() {
         uploadNotesBtn.addEventListener('click', handleUploadButtonClick);
     }
 
+    // Feedback modal events
+    if (feedbackLink) {
+        feedbackLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            openFeedbackModal();
+        });
+    }
+    if (closeFeedback) closeFeedback.addEventListener('click', closeFeedbackModal);
+    if (cancelFeedback) cancelFeedback.addEventListener('click', closeFeedbackModal);
+    if (closeFeedbackSuccess) closeFeedbackSuccess.addEventListener('click', closeFeedbackModal);
+
     // Escape key to close modals
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeDocumentModal();
             closeUploadModal();
+            closeFeedbackModal();
             
         }
     });
@@ -363,6 +387,62 @@ function resetUploadForm() {
     if (uploadSuccess) uploadSuccess.style.display = 'none';
 }
 
+// Feedback Modal Functions
+function openFeedbackModal() {
+    if (feedbackModal) {
+        // Show form, hide success state each time it's opened
+        if (feedbackForm) feedbackForm.style.display = 'block';
+        if (feedbackSuccess) feedbackSuccess.style.display = 'none';
+        feedbackModal.style.display = 'block';
+        // Optional: set initial focus
+        const nameInput = document.getElementById('fbName');
+        if (nameInput) setTimeout(() => nameInput.focus(), 0);
+    }
+}
+
+function closeFeedbackModal() {
+    if (feedbackModal) {
+        feedbackModal.style.display = 'none';
+        resetFeedbackForm();
+    }
+}
+
+function resetFeedbackForm() {
+    if (feedbackForm) {
+        feedbackForm.reset();
+        feedbackForm.style.display = 'block';
+    }
+    if (feedbackSuccess) feedbackSuccess.style.display = 'none';
+}
+
+// Intercept feedback form submission to show success UI inline
+if (feedbackForm) {
+    feedbackForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        try {
+            // Build form data for Web3Forms (optional network submission)
+            const formData = new FormData(feedbackForm);
+
+            // Attempt to submit; if offline or blocked by CORS, still show success UI
+            try {
+                await fetch(feedbackForm.action, {
+                    method: 'POST',
+                    body: formData
+                });
+            } catch (netErr) {
+                console.warn('Feedback submit network issue (ignored for UI):', netErr);
+            }
+
+            // Swap to success state
+            if (feedbackForm) feedbackForm.style.display = 'none';
+            if (feedbackSuccess) feedbackSuccess.style.display = 'block';
+        } catch (err) {
+            console.error('Feedback submission error:', err);
+            alert('Could not submit feedback right now. Please try again later.');
+        }
+    });
+}
+
 // Handle Upload Button Click - Validates form and opens Cloudinary widget
 function handleUploadButtonClick() {
     // Validate form fields
@@ -476,5 +556,3 @@ function normalizeDocument(doc) {
         isWorldwide: true
     };
 }
-
-// Feedback Modal Functions removed

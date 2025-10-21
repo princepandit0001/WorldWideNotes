@@ -1,54 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
     <!-- Primary Meta Tags -->
     <title>World Wide Notes - Share & Access Study Materials Globally | Free Educational Resources</title>
-    <meta name="title" content="World Wide Notes - Share & Access Study Materials Globally | Free Educational Resources">
-    <meta name="description" content="Access thousands of free study notes, previous year papers, and educational materials from students worldwide. Upload and share your notes to help the global student community.">
-    <meta name="keywords" content="study notes, previous year papers, educational resources, student notes, free study materials, exam preparation, university notes, college notes, academic resources, study guides">
+    <meta name="title"
+        content="World Wide Notes - Share & Access Study Materials Globally | Free Educational Resources">
+    <meta name="description"
+        content="Access thousands of free study notes, previous year papers, and educational materials from students worldwide. Upload and share your notes to help the global student community.">
+    <meta name="keywords"
+        content="study notes, previous year papers, educational resources, student notes, free study materials, exam preparation, university notes, college notes, academic resources, study guides">
     <meta name="author" content="World Wide Notes">
     <meta name="robots" content="index, follow">
     <meta name="language" content="English">
     <meta name="revisit-after" content="7 days">
-    
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://worldwidenotes.vercel.app/">
     <meta property="og:title" content="World Wide Notes - Share & Access Study Materials Globally">
-    <meta property="og:description" content="Access thousands of free study notes, previous year papers, and educational materials from students worldwide. Upload and share your notes to help the global student community.">
+    <meta property="og:description"
+        content="Access thousands of free study notes, previous year papers, and educational materials from students worldwide. Upload and share your notes to help the global student community.">
     <meta property="og:image" content="https://worldwidenotes.vercel.app/assets/og-image.jpg">
     <meta property="og:site_name" content="World Wide Notes">
     <meta property="og:locale" content="en_US">
-    
+
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://worldwidenotes.vercel.app/">
     <meta property="twitter:title" content="World Wide Notes - Share & Access Study Materials Globally">
-    <meta property="twitter:description" content="Access thousands of free study notes, previous year papers, and educational materials from students worldwide. Upload and share your notes to help the global student community.">
+    <meta property="twitter:description"
+        content="Access thousands of free study notes, previous year papers, and educational materials from students worldwide. Upload and share your notes to help the global student community.">
     <meta property="twitter:image" content="https://worldwidenotes.vercel.app/assets/og-image.jpg">
-    
+
     <!-- Favicons -->
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
     <link rel="manifest" href="assets/site.webmanifest">
-    
+
     <!-- Canonical URL -->
     <link rel="canonical" href="https://worldwidenotes.vercel.app/">
-    
+
     <!-- CSS -->
     <link rel="stylesheet" href="css/style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
+
     <!-- Preconnect for external resources -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="preconnect" href="https://res.cloudinary.com">
-    
+
     <!-- Structured Data - Organization -->
     <script type="application/ld+json">
     {
@@ -61,7 +67,7 @@
         "sameAs": []
     }
     </script>
-    
+
     <!-- Structured Data - WebSite -->
     <script type="application/ld+json">
     {
@@ -77,7 +83,7 @@
         }
     }
     </script>
-    
+
     <!-- Structured Data - Educational Organization -->
     <script type="application/ld+json">
     {
@@ -92,16 +98,18 @@
         }
     }
     </script>
-    
+
     <!-- Cloudinary SDK -->
     <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
 </head>
+
 <body>
     <!-- Header Section -->
     <header class="header" role="banner">
         <div class="container">
             <div class="logo">
-                <img src="assets/logo.jpg" alt="World Wide Notes Logo - Global Educational Resource Platform" style="width: 55px; height: 55px; border-radius: 8px;">
+                <img src="assets/logo.jpg" alt="World Wide Notes Logo - Global Educational Resource Platform"
+                    style="width: 55px; height: 55px; border-radius: 8px;">
                 <h1>World Wide Notes</h1>
             </div>
             <nav class="nav" role="navigation" aria-label="Main navigation">
@@ -117,18 +125,22 @@
             <!-- Hero Section -->
             <section class="hero" id="home">
                 <h2>Free Study Notes & Educational Resources from Students Worldwide</h2>
-                <p>Discover and access thousands of study notes, previous year papers, and educational materials from around the world. Join our global community of students sharing knowledge across all subjects including Mathematics, Physics, Chemistry, Computer Science, and more.</p>
-            </section>                       
+                <p>Discover and access thousands of study notes, previous year papers, and educational materials from
+                    around the world. Join our global community of students sharing knowledge across all subjects
+                    including Mathematics, Physics, Chemistry, Computer Science, and more.</p>
+            </section>
             <!-- Upload Section -->
             <section class="upload-section" aria-labelledby="upload-heading">
-                <div class="upload-container">                
+                <div class="upload-container">
                     <div class="upload-card" id="uploadCard">
                         <div class="upload-icon" aria-hidden="true">
                             <i class="fas fa-plus"></i>
                         </div>
                         <h3 id="upload-heading">Share Your Study Notes & Help Students Globally</h3>
-                        <p>Upload your study materials, lecture notes, assignments, and exam papers to help students worldwide. Contribute to our growing library of educational resources.</p>
-                        <button class="upload-trigger-btn" id="uploadTriggerBtn" aria-label="Upload your study notes and materials">
+                        <p>Upload your study materials, lecture notes, assignments, and exam papers to help students
+                            worldwide. Contribute to our growing library of educational resources.</p>
+                        <button class="upload-trigger-btn" id="uploadTriggerBtn"
+                            aria-label="Upload your study notes and materials">
                             <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i>
                             Upload Notes
                         </button>
@@ -142,7 +154,9 @@
                 <div class="search-container">
                     <div class="search-box" role="search">
                         <i class="fas fa-search" aria-hidden="true"></i>
-                        <input type="text" id="searchInput" placeholder="Search study notes, previous papers, assignments..." aria-label="Search for educational materials">
+                        <input type="text" id="searchInput"
+                            placeholder="Search study notes, previous papers, assignments..."
+                            aria-label="Search for educational materials">
                         <button id="searchBtn" class="search-btn" aria-label="Search documents">Search</button>
                     </div>
                 </div>
@@ -185,7 +199,7 @@
                     <h3 id="resultsTitle">Available Notes</h3>
                     <span id="resultsCount"></span>
                 </div>
-                
+
                 <div class="loading" id="loading" style="display: none;">
                     <i class="fas fa-spinner fa-spin"></i>
                     <span>Searching...</span>
@@ -209,9 +223,9 @@
         <div class="container">
             <p>&copy; 2025 World Wide Notes. Free educational resources for everyone.</p>
             <div class="footer-links">
-                
+
                 <a href="#browse">Browse</a>
-                <a href="#" id="feedbackLink" aria-haspopup="dialog" aria-controls="feedbackModal">Feedback</a>
+                <a href="#" id="feedbackLink" aria-haspopup="dialog" >Feedback</a>
             </div>
             <p class="footer-support">
                 <span>Reach out to us:</span> <br>
@@ -221,15 +235,18 @@
                             <i class="fa-solid fa-envelope" aria-hidden="true"></i>
                             <span class="visually-hidden">Email</span>
                         </a>
-                        <a href="https://wa.me/918307456034" target="_blank" rel="noopener" aria-label="Chat on WhatsApp" title="WhatsApp">
+                        <a href="https://wa.me/918307456034" target="_blank" rel="noopener"
+                            aria-label="Chat on WhatsApp" title="WhatsApp">
                             <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
                             <span class="visually-hidden">WhatsApp</span>
                         </a>
                     </span>
-                    | Support: <a href="mailto:devopsrite@gmail.com" aria-label="Email support at devopsrite at gmail dot com">devopsrite@gmail.com</a>
-                    — We respond to queries within 24 hours.  <br>
-                    <span>Developed by Prince with the help of <a href="https://www.youtube.com/@TheDevOpsRite">The DevOps Rite</a></span>
-                    
+                    | Support: <a href="mailto:devopsrite@gmail.com"
+                        aria-label="Email support at devopsrite at gmail dot com">devopsrite@gmail.com</a>
+                    — We respond to queries within 24 hours. <br>
+                    <span>Developed by Prince with the help of <a href="https://www.youtube.com/@TheDevOpsRite">The
+                            DevOps Rite</a></span>
+
                 </small>
             </p>
         </div>
@@ -273,70 +290,21 @@
                         <div class="upload-info">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <h4>Upload Your Notes</h4>
-                            <p>Fill in the details below and click "Upload Notes" to select and upload your file directly to our cloud storage.</p>
+                            <p>Fill in the details below and click "Upload Notes" to select and upload your file
+                                directly to our cloud storage.</p>
                             <small><i class="fas fa-info-circle"></i> Supports PDF, DOC, DOCX files up to 15MB</small>
                         </div>
                     </div>
 
-                        <!-- Feedback Modal -->
-                        <div id="feedbackModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle" aria-describedby="feedbackDesc" style="display: none;">
-                            <div class="modal-content feedback-modal">
-                                <span class="close" id="closeFeedback" aria-label="Close feedback form">&times;</span>
-                                <div class="modal-header">
-                                    <h3 id="feedbackTitle"><i class="fas fa-comment-dots"></i> Send Feedback</h3>
-                                    <p id="feedbackDesc">Tell us what you think about World Wide Notes. Your feedback helps us improve.</p>
-                                </div>
-                                <div class="modal-body">
-                                    <form id="feedbackForm" class="upload-form">
-                                        <div class="form-group">
-                                            <label for="fbName"><i class="fas fa-user"></i> Your Name *</label>
-                                            <input type="text" id="fbName" placeholder="Enter your name" required>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="fbEmail"><i class="fas fa-envelope"></i> Email (optional)</label>
-                                            <input type="email" id="fbEmail" placeholder="you@example.com">
-                                        </div>
-                                        <div class="form-row">
-                                            <div class="form-group">
-                                                <label for="fbCategory"><i class="fas fa-tag"></i> Category</label>
-                                                <select id="fbCategory">
-                                                    <option value="general" selected>General</option>
-                                                    <option value="bug">Bug Report</option>
-                                                    <option value="suggestion">Suggestion</option>
-                                                    <option value="other">Other</option>
-                                                </select>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="fbSubject"><i class="fas fa-heading"></i> Subject (optional)</label>
-                                                <input type="text" id="fbSubject" placeholder="Short subject">
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="fbMessage"><i class="fas fa-pencil-alt"></i> Message *</label>
-                                            <textarea id="fbMessage" rows="5" placeholder="Share details about your feedback..." required></textarea>
-                                        </div>
-                                        <div class="form-actions">
-                                            <button type="button" class="cancel-btn" id="cancelFeedback">Cancel</button>
-                                            <button type="submit" class="submit-btn" id="submitFeedback"><i class="fas fa-paper-plane"></i> Send Feedback</button>
-                                        </div>
-                                    </form>
-
-                                    <div id="feedbackSuccess" class="upload-success" style="display: none;">
-                                        <i class="fas fa-check-circle"></i>
-                                        <h3>Thanks for your feedback!</h3>
-                                        <p>We appreciate you taking the time to help improve World Wide Notes.</p>
-                                        <button class="close-success-btn" id="closeFeedbackSuccess">Close</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    
 
                     <div class="form-group">
                         <label for="noteTitle">
                             <i class="fas fa-heading"></i>
                             Note Title *
                         </label>
-                        <input type="text" id="noteTitle" placeholder="e.g., Calculus I - Limits and Derivatives" required>
+                        <input type="text" id="noteTitle" placeholder="e.g., Calculus I - Limits and Derivatives"
+                            required>
                     </div>
 
                     <div class="form-group">
@@ -344,7 +312,9 @@
                             <i class="fas fa-align-left"></i>
                             Description *
                         </label>
-                        <textarea id="noteDescription" placeholder="Describe what this note covers, topics included, etc..." rows="4" required></textarea>
+                        <textarea id="noteDescription"
+                            placeholder="Describe what this note covers, topics included, etc..." rows="4"
+                            required></textarea>
                     </div>
 
                     <div class="form-row">
@@ -419,12 +389,66 @@
         </div>
     </div>
 
+    <!-- Feedback Modal (standalone, not nested in upload modal) -->
+    <div id="feedbackModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle" aria-describedby="feedbackDesc" style="display: none;">
+        <div class="modal-content feedback-modal">
+            <span class="close" id="closeFeedback" aria-label="Close feedback form">&times;</span>
+            <div class="modal-header">
+                <h3 id="feedbackTitle"><i class="fas fa-comment-dots"></i> Send Feedback</h3>
+                <p id="feedbackDesc">Tell us what you think about World Wide Notes. Your feedback helps us improve.</p>
+            </div>
+            <div class="modal-body">
+                <form id="feedbackForm" action="https://api.web3forms.com/submit" method="POST" class="upload-form">
+                    <input type="hidden" name="access_key" value="4271c61b-4517-4ff8-8e4b-4933ab1a98e6">
+                    <div class="form-group">
+                        <label for="fbName"><i class="fas fa-user"></i> Your Name *</label>
+                        <input type="text" id="fbName" name="name" placeholder="Enter your name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fbEmail"><i class="fas fa-envelope"></i> Email (optional)</label>
+                        <input type="email" id="fbEmail" name="email" placeholder="you@example.com">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fbCategory"><i class="fas fa-tag"></i> Category</label>
+                            <select id="fbCategory" name="category">
+                                <option value="general" selected>General</option>
+                                <option value="bug">Bug Report</option>
+                                <option value="suggestion">Suggestion</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="fbSubject"><i class="fas fa-heading"></i> Subject (optional)</label>
+                            <input type="text" id="fbSubject" name="subject" placeholder="Short subject">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="fbMessage"><i class="fas fa-pencil-alt"></i> Message *</label>
+                        <textarea id="fbMessage" name="message" rows="5" placeholder="Share details about your feedback..." required></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="cancel-btn" id="cancelFeedback">Cancel</button>
+                        <button type="submit" class="submit-btn" id="submitFeedback"><i class="fas fa-paper-plane"></i> Send Feedback</button>
+                    </div>
+                </form>
+
+                <div id="feedbackSuccess" class="upload-success" style="display: none;">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>Thanks for your feedback!</h3>
+                    <p>We appreciate you taking the time to help improve World Wide Notes.</p>
+                    <button class="close-success-btn" id="closeFeedbackSuccess">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="js/config.js"></script>
     <script src="js/seo-enhancements.js"></script>
     <script src="js/jsonbin-global-storage.js"></script>
     <script src="js/cloudinary.js"></script>
     <script src="js/script.js"></script>
-    
+
     <!-- Schema Markup for FAQ (if you add an FAQ section later) -->
     <script type="application/ld+json">
     {
@@ -459,4 +483,5 @@
     }
     </script>
 </body>
+
 </html>
